@@ -5,6 +5,7 @@ import toast from 'react-hot-toast'
 
 import { useAuth } from '../contexts/AuthContext'
 import { useFirebase } from '../contexts/FirebaseContext'
+import { deleteRoom } from '../services/deleteRoom'
 
 const Dashboard = () => {
   const navigate = useNavigate()
@@ -22,6 +23,10 @@ const Dashboard = () => {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [roomTitle, setRoomTitle] = useState('')
   const [roomDescription, setRoomDescription] = useState('')
+  
+  // Estados para el modal de confirmación de eliminación
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [roomToDelete, setRoomToDelete] = useState(null)
 
   useEffect(() => {
     loadUserRooms()
@@ -128,6 +133,34 @@ const Dashboard = () => {
     } finally {
       setActingOn(null)
     }
+  }
+
+  const handleDeleteRoom = async () => {
+    if (!roomToDelete) return;
+    
+    try {
+      setActingOn(roomToDelete.id)
+      console.log('�️ Eliminando sala usando función importada directamente:', roomToDelete.id)
+      const result = await deleteRoom(roomToDelete.id)
+      
+      // Show success message with details
+      const { deletedCounts } = result
+      const message = `Sala "${roomToDelete.title}" eliminada. Datos eliminados: ${deletedCounts.participants} participantes, ${deletedCounts.words} palabras.`
+      toast.success(message)
+      
+      await loadUserRooms()
+      setShowDeleteModal(false)
+      setRoomToDelete(null)
+    } catch (e) {
+      toast.error(e.message || 'No se pudo eliminar la sala')
+    } finally {
+      setActingOn(null)
+    }
+  }
+
+  const confirmDeleteRoom = (room) => {
+    setRoomToDelete(room)
+    setShowDeleteModal(true)
   }
 
   const activeRooms = rooms.filter((r) => r.state === 'active').length
@@ -253,6 +286,14 @@ const Dashboard = () => {
                           {actingOn === room.id ? 'Procesando…' : 'Finalizar'}
                         </button>
                       )}
+                      <button 
+                        className="btn btn-danger btn-sm" 
+                        onClick={() => confirmDeleteRoom(room)} 
+                        disabled={actingOn === room.id}
+                        title="Eliminar sala y todos sus datos"
+                      >
+                        {actingOn === room.id ? 'Eliminando…' : 'Eliminar'}
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -343,6 +384,73 @@ const Dashboard = () => {
                   </div>
                 ) : (
                   'Crear Sala'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de confirmación para eliminar sala */}
+      {showDeleteModal && roomToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <div className="flex items-center mb-4">
+              <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center mr-3">
+                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Confirmar Eliminación</h3>
+                <p className="text-sm text-gray-600">Esta acción no se puede deshacer</p>
+              </div>
+            </div>
+            
+            <div className="mb-6">
+              <p className="text-gray-700 mb-3">
+                ¿Estás seguro de que quieres eliminar la sala <strong>"{roomToDelete.title}"</strong>?
+              </p>
+              <div className="bg-red-50 border border-red-200 rounded-md p-3">
+                <p className="text-red-800 text-sm font-medium mb-2">Se eliminarán permanentemente:</p>
+                <ul className="text-red-700 text-sm space-y-1">
+                  <li>• La sala y toda su configuración</li>
+                  <li>• Todos los participantes ({participantCounts[roomToDelete.id] || 0})</li>
+                  <li>• Todas las palabras enviadas</li>
+                  <li>• Todo el historial de la sala</li>
+                </ul>
+              </div>
+              <div className="mt-3 p-3 bg-gray-50 rounded-md">
+                <p className="text-gray-600 text-sm">
+                  <strong>Código de sala:</strong> {roomToDelete.code}<br/>
+                  <strong>Estado:</strong> {roomToDelete.state === 'active' ? 'Activa' : roomToDelete.state === 'waiting' ? 'Esperando' : 'Finalizada'}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex space-x-3">
+              <button
+                onClick={() => {
+                  setShowDeleteModal(false)
+                  setRoomToDelete(null)
+                }}
+                className="btn btn-secondary flex-1"
+                disabled={actingOn === roomToDelete.id}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleDeleteRoom}
+                disabled={actingOn === roomToDelete.id}
+                className="btn btn-danger flex-1"
+              >
+                {actingOn === roomToDelete.id ? (
+                  <div className="flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Eliminando...
+                  </div>
+                ) : (
+                  'Sí, Eliminar Sala'
                 )}
               </button>
             </div>
