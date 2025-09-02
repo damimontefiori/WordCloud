@@ -12,7 +12,8 @@ const ACCENT_MAP = {
   'í': 'i', 'ì': 'i', 'ï': 'i', 'î': 'i', 'ī': 'i', 'į': 'i',
   'ó': 'o', 'ò': 'o', 'ö': 'o', 'ô': 'o', 'ō': 'o', 'õ': 'o', 'ø': 'o', 'ő': 'o',
   'ú': 'u', 'ù': 'u', 'ü': 'u', 'û': 'u', 'ū': 'u', 'ů': 'u', 'ű': 'u', 'ų': 'u',
-  'ñ': 'n', 'ń': 'n', 'ň': 'n', 'ņ': 'n',
+  // ñ se preserva intencionalmente
+  'ń': 'n', 'ň': 'n', 'ņ': 'n',
   'ç': 'c', 'ć': 'c', 'č': 'c', 'ĉ': 'c', 'ċ': 'c',
   'ř': 'r', 'ŕ': 'r',
   'š': 's', 'ś': 's', 'ŝ': 's', 'ş': 's',
@@ -32,7 +33,8 @@ const ACCENT_MAP = {
   'Í': 'I', 'Ì': 'I', 'Ï': 'I', 'Î': 'I', 'Ī': 'I', 'Į': 'I',
   'Ó': 'O', 'Ò': 'O', 'Ö': 'O', 'Ô': 'O', 'Ō': 'O', 'Õ': 'O', 'Ø': 'O', 'Ő': 'O',
   'Ú': 'U', 'Ù': 'U', 'Ü': 'U', 'Û': 'U', 'Ū': 'U', 'Ů': 'U', 'Ű': 'U', 'Ų': 'U',
-  'Ñ': 'N', 'Ń': 'N', 'Ň': 'N', 'Ņ': 'N',
+  // Ñ se preserva intencionalmente
+  'Ń': 'N', 'Ň': 'N', 'Ņ': 'N',
   'Ç': 'C', 'Ć': 'C', 'Č': 'C', 'Ĉ': 'C', 'Ċ': 'C',
   'Ř': 'R', 'Ŕ': 'R',
   'Š': 'S', 'Ś': 'S', 'Ŝ': 'S', 'Ş': 'S',
@@ -144,14 +146,16 @@ export function processWord(word) {
  * Ejemplos de normalización para testing
  */
 export const NORMALIZATION_EXAMPLES = [
-  { input: ' Canción ', expected: 'cancion' },
+  { input: ' Canción ', expected: 'canción' }, // ñ se preserva
   { input: 'CANCION', expected: 'cancion' },
   { input: 'cancion', expected: 'cancion' },
+  { input: 'Niño', expected: 'niño' }, // ñ se preserva
   { input: '  múltiples   espacios  ', expected: 'multiples espacios' },
-  { input: 'Niño🎵', expected: 'nino' },
+  { input: 'Niño🎵', expected: 'niño' },
   { input: 'café-bar', expected: 'cafe-bar' },
   { input: 'São Paulo', expected: 'sao paulo' },
   { input: '  @#$%^  ', expected: '' },
   { input: 'resumé', expected: 'resume' },
-  { input: 'naïve', expected: 'naive' }
+  { input: 'naïve', expected: 'naive' },
+  { input: 'español', expected: 'español' } // ñ se preserva
 ];

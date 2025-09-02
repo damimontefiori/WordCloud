@@ -208,18 +208,12 @@ export const apiService = {
     }
   },
 
-  // Submit a word - with Functions fallback
+  // Submit a word - Direct Firestore only (no Functions)
   async submitWord(data) {
-    try {
-      // Try Functions first
-      const result = await submitWordFunction(data);
-      return result.data;
-    } catch (error) {
-      console.warn('Falling back to Firestore (no Functions) for submitWord');
-      // Fallback to direct Firestore
-      const result = await this.submitWordDirect(data);
-      return result;
-    }
+    // Use direct Firestore implementation only
+    console.log('🔄 Using direct Firestore for submitWord (Firebase Spark plan)');
+    const result = await this.submitWordDirect(data);
+    return result;
   },
 
   // Manual cleanup (admin only)
