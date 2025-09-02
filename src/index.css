@@ -48,6 +48,38 @@ body {
     @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent;
   }
   
+  /* Personal Badge */
+  .personal-badge {
+    @apply inline-flex items-center px-3 py-1 ml-3 text-xs font-medium;
+    background: rgba(15, 23, 42, 0.7);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 999px;
+    color: #dfe7ff;
+    transition: all 0.2s ease;
+  }
+  
+  .personal-badge:hover {
+    background: rgba(15, 23, 42, 0.8);
+    border-color: rgba(148, 163, 184, 0.3);
+  }
+
+  /* Modal About Animations */
+  .animate-fade-in {
+    animation: fadeIn 0.2s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
   .word-cloud-item {
     @apply inline-block m-1 px-2 py-1 rounded transition-all duration-300 cursor-default;
     animation: fadeIn 0.5s ease-in-out;

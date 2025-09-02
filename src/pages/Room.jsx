@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { useFirebase } from '../contexts/FirebaseContext'
-import { db } from '../services/firebase'
+import { db, auth } from '../services/firebase'
 import { doc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore'
 import toast from 'react-hot-toast'
 import WordCloudVisualization from '../components/WordCloudVisualization'
@@ -21,12 +21,13 @@ const Room = () => {
   const [isActivating, setIsActivating] = useState(false)
   const [isPresentationMode, setIsPresentationMode] = useState(false)
   
-  // Get participant data from localStorage
+  // Get participant data from localStorage (only for regular participants)
   const participant = JSON.parse(localStorage.getItem('participant') || 'null')
   const hasJoined = participant && participant.roomCode === roomCode
   
-  // Check if user is admin (room creator)
-  const isAdmin = participant && roomData && participant.id === roomData.createdBy
+  // Check if current authenticated user is admin (room creator)
+  const currentUser = auth.currentUser
+  const isAdmin = currentUser && roomData && currentUser.uid === roomData.createdBy
   
   // Check voted status on mount and when roomCode changes
   useEffect(() => {
@@ -391,10 +392,17 @@ const Room = () => {
               </div>
             </div>
             
-            {hasJoined && (
+            {hasJoined && !isAdmin && (
               <div className="text-right">
                 <p className="text-sm text-gray-600">Conectado como:</p>
                 <p className="font-semibold text-gray-900">{participant.name}</p>
+              </div>
+            )}
+            
+            {isAdmin && (
+              <div className="text-right">
+                <p className="text-sm text-gray-600">Administrador:</p>
+                <p className="font-semibold text-gray-900">{currentUser.email}</p>
               </div>
             )}
           </div>
@@ -432,8 +440,23 @@ const Room = () => {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Word Submission */}
-            {hasJoined && !hasVoted && roomData.state === 'active' && (
+            {/* Admin Panel */}
+            {isAdmin && (
+              <div className="card bg-blue-50 border-blue-200">
+                <div className="text-center">
+                  <svg className="w-8 h-8 text-blue-500 mx-auto mb-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  </svg>
+                  <h3 className="text-lg font-semibold text-blue-900 mb-1">Panel de Administrador</h3>
+                  <p className="text-blue-700 text-sm mb-4">
+                    Estás viendo esta sala como administrador. Los participantes pueden enviar palabras usando el código: <strong>{roomData.code}</strong>
+                  </p>
+                </div>
+              </div>
+            )}
+            
+            {/* Word Submission - Only for non-admin participants */}
+            {!isAdmin && hasJoined && !hasVoted && roomData.state === 'active' && (
               <div className="card">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Envía tu palabra</h3>
                 <form onSubmit={handleSubmitWord} className="space-y-4">
@@ -468,8 +491,8 @@ const Room = () => {
               </div>
             )}
 
-            {/* Voted Status */}
-            {hasJoined && hasVoted && (
+            {/* Voted Status - Only for participants */}
+            {!isAdmin && hasJoined && hasVoted && (
               <div className="card bg-green-50 border-green-200">
                 <div className="text-center">
                   <svg className="w-8 h-8 text-green-500 mx-auto mb-2" fill="currentColor" viewBox="0 0 20 20">
@@ -483,7 +506,7 @@ const Room = () => {
               </div>
             )}
 
-            {/* Room Not Active */}
+            {/* Room Not Active - Different message for admin vs participants */}
             {roomData.state !== 'active' && (
               <div className="card bg-yellow-50 border-yellow-200">
                 <div className="text-center">
@@ -494,17 +517,21 @@ const Room = () => {
                     {roomData.state === 'waiting' ? 'Sala en espera' : 'Sala finalizada'}
                   </h3>
                   <p className="text-yellow-700 text-sm">
-                    {roomData.state === 'waiting' 
-                      ? 'El administrador aún no ha iniciado la sala.'
-                      : 'Esta sala ha finalizado. No se pueden enviar más palabras.'
+                    {isAdmin 
+                      ? (roomData.state === 'waiting' 
+                          ? 'Puedes iniciar la sala cuando estés listo para recibir palabras de los participantes.' 
+                          : 'Esta sala ha finalizado.')
+                      : (roomData.state === 'waiting' 
+                          ? 'El administrador aún no ha iniciado la sala.'
+                          : 'Esta sala ha finalizado. No se pueden enviar más palabras.')
                     }
                   </p>
                 </div>
               </div>
             )}
 
-            {/* Join Prompt */}
-            {!hasJoined && (
+            {/* Join Prompt - Only for non-authenticated users */}
+            {!hasJoined && !isAdmin && (
               <div className="card bg-blue-50 border-blue-200">
                 <div className="text-center">
                   <svg className="w-8 h-8 text-blue-500 mx-auto mb-2" fill="currentColor" viewBox="0 0 20 20">

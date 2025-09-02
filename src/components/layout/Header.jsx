@@ -1,12 +1,15 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import toast from 'react-hot-toast'
+import AboutModal from '../AboutModal'
+import PersonalBadge from '../PersonalBadge'
 
 const Header = () => {
   const { currentUser, logout } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
+  const [isAboutModalOpen, setIsAboutModalOpen] = useState(false)
 
   const handleLogout = async () => {
     try {
@@ -26,14 +29,15 @@ const Header = () => {
     <header className="bg-white shadow-sm border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <div className="flex-shrink-0">
+          {/* Logo y Badge Personal */}
+          <div className="flex-shrink-0 flex items-center">
             <Link to="/" className="flex items-center">
               <div className="w-8 h-8 bg-primary-600 rounded-lg mr-3 flex items-center justify-center">
                 <span className="text-white font-bold text-sm">W</span>
               </div>
               <span className="font-bold text-xl text-gray-900">WordCloud</span>
             </Link>
+            <PersonalBadge />
           </div>
 
           {/* Navigation */}
@@ -61,6 +65,14 @@ const Header = () => {
                 Dashboard
               </Link>
             )}
+
+            {/* Botón About - siempre visible */}
+            <button
+              onClick={() => setIsAboutModalOpen(true)}
+              className="text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors"
+            >
+              About
+            </button>
           </nav>
 
           {/* User menu */}
@@ -90,6 +102,12 @@ const Header = () => {
           </div>
         </div>
       </div>
+
+      {/* Modal About */}
+      <AboutModal 
+        isOpen={isAboutModalOpen} 
+        onClose={() => setIsAboutModalOpen(false)} 
+      />
     </header>
   )
 }
