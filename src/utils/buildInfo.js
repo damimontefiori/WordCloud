@@ -1,17 +1,10 @@
 // Este archivo es generado automáticamente durante el build
 export const buildInfo = {
-  version: "v2.1.0",
-  buildDate: new Date().toISOString(),
-  buildTime: new Date().toLocaleString('es-ES', {
-    year: 'numeric',
-    month: '2-digit', 
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    timeZoneName: 'short'
-  }),
-  buildTimestamp: Date.now(),
-  gitCommit: process.env.VITE_GIT_COMMIT || 'unknown',
-  environment: process.env.NODE_ENV || 'development'
+  "version": "v2.1.0",
+  "buildDate": "2025-09-02T19:27:57.627Z",
+  "buildTime": "02/09/2025, 16:27:57 GMT-3",
+  "buildTimestamp": 1756841277627,
+  "gitCommit": "694aa35e2740113ee07a50d8d7f6d8d29e4207b8",
+  "gitBranch": "main",
+  "environment": "production"
 }

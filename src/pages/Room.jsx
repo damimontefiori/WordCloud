@@ -4,6 +4,7 @@ import { useFirebase } from '../contexts/FirebaseContext'
 import { db } from '../services/firebase'
 import { doc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore'
 import toast from 'react-hot-toast'
+import WordCloudVisualization from '../components/WordCloudVisualization'
 
 const Room = () => {
   const { roomCode } = useParams()
@@ -261,18 +262,7 @@ const Room = () => {
                 </div>
               ) : (
                 <div className="flex flex-wrap items-center justify-center gap-4 py-8 min-h-[300px]">
-                  {words.map((wordData, index) => (
-                    <span
-                      key={index}
-                      className="text-primary-600 font-semibold select-none"
-                      style={{
-                        fontSize: `${wordData.size}px`,
-                        opacity: 0.7 + (wordData.count * 0.1)
-                      }}
-                    >
-                      {wordData.text}
-                    </span>
-                  ))}
+                  <WordCloudVisualization words={words} />
                 </div>
               )}
             </div>

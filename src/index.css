@@ -52,4 +52,37 @@ body {
     @apply inline-block m-1 px-2 py-1 rounded transition-all duration-300 cursor-default;
     animation: fadeIn 0.5s ease-in-out;
   }
+  
+  /* Nuevas animaciones para Word Cloud */
+  .word-item {
+    position: relative;
+    display: inline-block;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .word-cloud-container .floating-particle {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    animation: float 6s ease-in-out infinite;
+  }
+  
+  .word-cloud-container .floating-particle:nth-child(1) {
+    top: 20%;
+    left: 10%;
+    animation-duration: 8s;
+  }
+  
+  .word-cloud-container .floating-particle:nth-child(2) {
+    top: 60%;
+    right: 15%;
+    animation-duration: 10s;
+  }
+  
+  .word-cloud-container .floating-particle:nth-child(3) {
+    bottom: 30%;
+    left: 20%;
+    animation-duration: 12s;
+  }
 }
