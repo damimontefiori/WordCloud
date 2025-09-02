@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 
-const WordCloudVisualization = ({ words }) => {
+const WordCloudVisualization = ({ words, presentationMode = false }) => {
   const [animatedWords, setAnimatedWords] = useState([])
 
   // Paleta de colores vibrantes y atractivos
@@ -33,8 +33,9 @@ const WordCloudVisualization = ({ words }) => {
 
   // Función para calcular el tamaño de la fuente dinámicamente
   const getWordSize = (count, maxCount) => {
-    const minSize = 16
-    const maxSize = 64
+    // En modo presentación, usar tamaños más grandes
+    const minSize = presentationMode ? 24 : 16
+    const maxSize = presentationMode ? 120 : 64
     const ratio = count / Math.max(maxCount, 1)
     return Math.max(minSize, Math.min(maxSize, minSize + (ratio * (maxSize - minSize))))
   }
@@ -79,11 +80,19 @@ const WordCloudVisualization = ({ words }) => {
   }
 
   return (
-    <div className="word-cloud-container relative overflow-hidden bg-gradient-to-br from-slate-50 to-blue-50 rounded-2xl p-8 min-h-[400px]">
-      {/* Efecto de fondo sutil */}
-      <div className="absolute inset-0 bg-gradient-to-r from-blue-100/30 via-purple-100/30 to-pink-100/30 animate-pulse opacity-50"></div>
+    <div className={`word-cloud-container relative overflow-hidden rounded-2xl min-h-[400px] ${
+      presentationMode 
+        ? 'bg-transparent p-12 min-h-[600px]' 
+        : 'bg-gradient-to-br from-slate-50 to-blue-50 p-8'
+    }`}>
+      {/* Efecto de fondo sutil - solo en modo normal */}
+      {!presentationMode && (
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-100/30 via-purple-100/30 to-pink-100/30 animate-pulse opacity-50"></div>
+      )}
       
-      <div className="relative flex flex-wrap items-center justify-center gap-6 py-8">
+      <div className={`relative flex flex-wrap items-center justify-center gap-6 py-8 ${
+        presentationMode ? 'gap-12 py-16' : ''
+      }`}>
         {animatedWords.map((wordData) => (
           <WordItem
             key={wordData.id}
@@ -93,21 +102,24 @@ const WordCloudVisualization = ({ words }) => {
             size={wordData.size}
             isNew={wordData.isNew}
             animationDelay={wordData.animationDelay}
+            presentationMode={presentationMode}
           />
         ))}
       </div>
       
-      {/* Partículas decorativas */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="floating-particle bg-blue-300 opacity-20"></div>
-        <div className="floating-particle bg-purple-300 opacity-20" style={{ animationDelay: '2s' }}></div>
-        <div className="floating-particle bg-pink-300 opacity-20" style={{ animationDelay: '4s' }}></div>
-      </div>
+      {/* Partículas decorativas - solo en modo normal */}
+      {!presentationMode && (
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="floating-particle bg-blue-300 opacity-20"></div>
+          <div className="floating-particle bg-purple-300 opacity-20" style={{ animationDelay: '2s' }}></div>
+          <div className="floating-particle bg-pink-300 opacity-20" style={{ animationDelay: '4s' }}></div>
+        </div>
+      )}
     </div>
   )
 }
 
-const WordItem = ({ text, count, color, size, isNew, animationDelay }) => {
+const WordItem = ({ text, count, color, size, isNew, animationDelay, presentationMode = false }) => {
   const [isVisible, setIsVisible] = useState(false)
 
   useEffect(() => {
@@ -124,19 +136,26 @@ const WordItem = ({ text, count, color, size, isNew, animationDelay }) => {
         hover:scale-110 hover:rotate-1 hover:z-10
         ${isVisible ? 'animate-word-appear' : 'opacity-0 scale-0'}
         ${isNew ? 'animate-word-bounce' : ''}
+        ${presentationMode ? 'text-white' : ''}
       `}
       style={{
-        color: color,
+        color: presentationMode ? 'white' : color,
         fontSize: `${size}px`,
-        textShadow: `2px 2px 4px rgba(0,0,0,0.1)`,
-        filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
+        textShadow: presentationMode 
+          ? `3px 3px 6px rgba(0,0,0,0.8), 0 0 20px ${color}` 
+          : `2px 2px 4px rgba(0,0,0,0.1)`,
+        filter: presentationMode 
+          ? `drop-shadow(0 4px 8px rgba(0,0,0,0.5)) drop-shadow(0 0 15px ${color})`
+          : 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
         animationDelay: `${animationDelay}ms`,
       }}
       title={`"${text}" - ${count} ${count === 1 ? 'voto' : 'votos'}`}
     >
       {text}
       {count > 1 && (
-        <sup className="text-xs opacity-75 ml-1 font-normal">
+        <sup className={`text-xs opacity-75 ml-1 font-normal ${
+          presentationMode ? 'text-blue-200' : ''
+        }`}>
           {count}
         </sup>
       )}
