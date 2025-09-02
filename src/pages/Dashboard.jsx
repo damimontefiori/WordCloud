@@ -9,18 +9,41 @@ import { useFirebase } from '../contexts/FirebaseContext'
 const Dashboard = () => {
   const navigate = useNavigate()
   const { currentUser } = useAuth()
-  const { api, db } = useFirebase()
+  const { api, db, subscribeToParticipants } = useFirebase()
 
   const [rooms, setRooms] = useState([])
   const [loading, setLoading] = useState(false)
   const [createRoomLoading, setCreateRoomLoading] = useState(false)
   const [actingOn, setActingOn] = useState(null)
   const [error, setError] = useState('')
+  const [participantCounts, setParticipantCounts] = useState({})
 
   useEffect(() => {
     loadUserRooms()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser])
+
+  // Subscribe to participants for all user rooms
+  useEffect(() => {
+    if (!rooms.length) return
+
+    const unsubscribers = []
+    
+    rooms.forEach(room => {
+      const unsubscribe = subscribeToParticipants(room.id, (snapshot) => {
+        const count = snapshot.size
+        setParticipantCounts(prev => ({
+          ...prev,
+          [room.id]: count
+        }))
+      })
+      unsubscribers.push(unsubscribe)
+    })
+
+    return () => {
+      unsubscribers.forEach(unsubscribe => unsubscribe())
+    }
+  }, [rooms, subscribeToParticipants])
 
   const loadUserRooms = async () => {
     if (!currentUser) return
@@ -97,10 +120,8 @@ const Dashboard = () => {
   }
 
   const activeRooms = rooms.filter((r) => r.state === 'active').length
-  const totalParticipants = rooms.reduce(
-    (total, r) => total + (r.participantCount || 0),
-    0
-  )
+  const totalParticipants = Object.values(participantCounts).reduce((total, count) => total + count, 0)
+  const totalRoomsWithParticipants = Object.values(participantCounts).filter(count => count > 0).length
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -143,7 +164,12 @@ const Dashboard = () => {
                 </svg>
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">{totalParticipants}</h3>
-              <p className="text-gray-600 text-sm">Total Participantes</p>
+              <p className="text-gray-600 text-sm">
+                {totalParticipants > 0 
+                  ? `Participantes: ${totalParticipants}, en ${totalRoomsWithParticipants} salas`
+                  : 'Total Participantes'
+                }
+              </p>
             </div>
           </div>
 
@@ -199,7 +225,7 @@ const Dashboard = () => {
                       <p className="text-gray-600 text-sm">{room.description}</p>
                       <div className="mt-2 flex items-center text-sm text-gray-500">
                         <span className="mr-4">Código: {room.code}</span>
-                        <span className="mr-4">Participantes: {room.participantCount || 0}</span>
+                        <span className="mr-4">Participantes: {participantCounts[room.id] || 0}</span>
                         <span className={`px-2 py-1 rounded-full text-xs ${
                           room.state === 'active' ? 'bg-green-100 text-green-800' :
                           room.state === 'waiting' ? 'bg-yellow-100 text-yellow-800' :
