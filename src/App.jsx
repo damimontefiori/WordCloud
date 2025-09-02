@@ -17,6 +17,7 @@ import Join from './pages/Join'
 // Components
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import Layout from './components/layout/Layout'
+import VersionInfo from './components/layout/VersionInfo'
 
 // Create a client
 const queryClient = new QueryClient({
@@ -97,6 +98,9 @@ function App() {
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
               </Layout>
+              
+              {/* Version Info - Fixed position */}
+              <VersionInfo />
               
               {/* Toast notifications */}
               <Toaster 

@@ -16,6 +16,7 @@ const Room = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [roomLoading, setRoomLoading] = useState(true)
   const [hasVoted, setHasVoted] = useState(false)
+  const [isActivating, setIsActivating] = useState(false)
   
   // Get participant data from localStorage
   const participant = JSON.parse(localStorage.getItem('participant') || 'null')
@@ -122,6 +123,9 @@ const Room = () => {
 
   // Función temporal para activar la sala (solo para demostración)
   const handleActivateRoom = async () => {
+    if (isActivating) return
+    
+    setIsActivating(true)
     try {
       // Find room by code
       const roomsRef = collection(db, 'rooms')
@@ -146,6 +150,8 @@ const Room = () => {
     } catch (error) {
       console.error('Error activating room:', error)
       toast.error('Error al activar la sala')
+    } finally {
+      setIsActivating(false)
     }
   }
 
@@ -193,13 +199,30 @@ const Room = () => {
                   {roomData.state === 'active' ? 'Activa' : 
                    roomData.state === 'waiting' ? 'Esperando' : 'Finalizada'}
                 </span>
-                {/* Botón temporal para activar la sala (solo para demostración) */}
+                {/* Botón para iniciar la sala */}
                 {roomData.state === 'waiting' && (
                   <button
                     onClick={handleActivateRoom}
-                    className="ml-4 px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors"
+                    disabled={isActivating}
+                    className={`ml-4 inline-flex items-center px-4 py-2 text-white text-sm font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg transform ${
+                      isActivating 
+                        ? 'bg-gray-400 cursor-not-allowed' 
+                        : 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 hover:scale-105'
+                    }`}
                   >
-                    🚀 Activar Sala (Demo)
+                    {isActivating ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Iniciando...
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h1m4 0h1m6-8V8a2 2 0 00-2-2H4a2 2 0 00-2 2v8a2 2 0 002-2V8z" />
+                        </svg>
+                        Iniciar Sala
+                      </>
+                    )}
                   </button>
                 )}
               </div>
