@@ -220,7 +220,9 @@ const Room = () => {
           {/* Word Cloud */}
           <div className="lg:col-span-2">
             <div className="card">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Word Cloud en Tiempo Real</h2>
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                {roomData?.title || 'Word Cloud en Tiempo Real'}
+              </h2>
               
               {words.length === 0 ? (
                 <div className="text-center py-16">

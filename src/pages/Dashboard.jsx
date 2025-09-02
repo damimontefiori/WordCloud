@@ -17,6 +17,11 @@ const Dashboard = () => {
   const [actingOn, setActingOn] = useState(null)
   const [error, setError] = useState('')
   const [participantCounts, setParticipantCounts] = useState({})
+  
+  // Estados para el modal de crear sala
+  const [showCreateModal, setShowCreateModal] = useState(false)
+  const [roomTitle, setRoomTitle] = useState('')
+  const [roomDescription, setRoomDescription] = useState('')
 
   useEffect(() => {
     loadUserRooms()
@@ -75,14 +80,20 @@ const Dashboard = () => {
     setError('')
     try {
       const roomData = {
-        title: `Sala de ${currentUser.email}`,
-        description: 'Nueva sala de Word Cloud',
+        title: roomTitle.trim() || `Sala de ${currentUser.email}`,
+        description: roomDescription.trim() || 'Nueva sala de Word Cloud',
         maxParticipants: 50,
         timeLimit: 30,
         adminEmail: currentUser.email,
       }
       const result = await api.createRoom(roomData)
       await loadUserRooms()
+      
+      // Limpiar el modal
+      setRoomTitle('')
+      setRoomDescription('')
+      setShowCreateModal(false)
+      
       const roomCode = result?.data?.roomCode || result?.roomCode
       if (roomCode) navigate(`/room/${roomCode}`)
     } catch (err) {
@@ -143,15 +154,8 @@ const Dashboard = () => {
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Crear Nueva Sala</h3>
               <p className="text-gray-600 text-sm mb-4">Inicia una nueva sesión de Word Cloud</p>
-              <button className="btn btn-primary w-full" onClick={handleCreateRoom} disabled={createRoomLoading}>
-                {createRoomLoading ? (
-                  <div className="flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Creando...
-                  </div>
-                ) : (
-                  'Crear Sala'
-                )}
+              <button className="btn btn-primary w-full" onClick={() => setShowCreateModal(true)} disabled={createRoomLoading}>
+                Crear Sala
               </button>
             </div>
           </div>
@@ -190,7 +194,7 @@ const Dashboard = () => {
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-semibold text-gray-900">Mis Salas</h2>
             <div className="flex space-x-3">
-              <button className="btn btn-primary" onClick={handleCreateRoom} disabled={createRoomLoading}>
+              <button className="btn btn-primary" onClick={() => setShowCreateModal(true)} disabled={createRoomLoading}>
                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
@@ -211,8 +215,8 @@ const Dashboard = () => {
               </svg>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">No tienes salas creadas</h3>
               <p className="text-gray-600 mb-6">Crea tu primera sala para comenzar a interactuar con tu audiencia</p>
-              <button className="btn btn-primary" onClick={handleCreateRoom} disabled={createRoomLoading}>
-                {createRoomLoading ? 'Creando...' : 'Crear Mi Primera Sala'}
+              <button className="btn btn-primary" onClick={() => setShowCreateModal(true)} disabled={createRoomLoading}>
+                Crear Mi Primera Sala
               </button>
             </div>
           ) : (
@@ -270,6 +274,81 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* Modal para crear sala */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Crear Nueva Sala</h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Título de la sala (opcional)
+                </label>
+                <input
+                  type="text"
+                  value={roomTitle}
+                  onChange={(e) => setRoomTitle(e.target.value)}
+                  placeholder="Ej: Lluvia de ideas Marketing"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Si lo dejas vacío, usaremos un título por defecto
+                </p>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Descripción (opcional)
+                </label>
+                <textarea
+                  value={roomDescription}
+                  onChange={(e) => setRoomDescription(e.target.value)}
+                  placeholder="Ej: Sesión de brainstorming para nuevas ideas"
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+
+            {error && (
+              <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+                {error}
+              </div>
+            )}
+
+            <div className="flex space-x-3 mt-6">
+              <button
+                onClick={() => {
+                  setShowCreateModal(false)
+                  setRoomTitle('')
+                  setRoomDescription('')
+                  setError('')
+                }}
+                className="btn btn-secondary flex-1"
+                disabled={createRoomLoading}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleCreateRoom}
+                disabled={createRoomLoading}
+                className="btn btn-primary flex-1"
+              >
+                {createRoomLoading ? (
+                  <div className="flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Creando...
+                  </div>
+                ) : (
+                  'Crear Sala'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
