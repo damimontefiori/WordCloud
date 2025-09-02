@@ -3,6 +3,7 @@ import * as admin from 'firebase-admin';
 import { Timestamp, FieldValue } from 'firebase-admin/firestore';
 import { validateWord, createErrorResponse, createSuccessResponse } from '../utils/helpers';
 import { COLLECTIONS, ROOM_STATES, ERROR_CODES } from '../utils/constants';
+import { normalizeWord, isValidNormalizedWord } from '../utils/wordNormalizer';
 
 const db = admin.firestore();
 
@@ -73,15 +74,26 @@ export const submitWord = functions.https.onCall(async (data: SubmitWordRequest,
       return createErrorResponse(ERROR_CODES.INVALID_INPUT, 'La votación no ha comenzado');
     }
 
-    const cleanWord = wordValidation.word!.toLowerCase();
+    // Normalize the word for duplicate detection
+    const normalizedWord = normalizeWord(wordValidation.word!);
+    
+    // Validate normalized word
+    if (!isValidNormalizedWord(normalizedWord)) {
+      return createErrorResponse(ERROR_CODES.INVALID_WORD, 'La palabra contiene caracteres no válidos o está vacía después de la normalización');
+    }
+
+    functions.logger.info('Word normalization:', { 
+      original: wordValidation.word, 
+      normalized: normalizedWord 
+    });
 
     // Use transaction to ensure consistency
     await db.runTransaction(async (transaction) => {
-      // Check if word already exists for this room
+      // Check if word already exists for this room (using normalized version)
       const wordQuery = await transaction.get(
         db.collection(COLLECTIONS.WORDS)
           .where('roomId', '==', participantData.roomId)
-          .where('text', '==', cleanWord)
+          .where('text', '==', normalizedWord)
           .limit(1)
       );
 
@@ -102,7 +114,7 @@ export const submitWord = functions.https.onCall(async (data: SubmitWordRequest,
         wordRef = db.collection(COLLECTIONS.WORDS).doc();
         transaction.set(wordRef, {
           roomId: participantData.roomId,
-          text: cleanWord,
+          text: normalizedWord,
           originalText: wordValidation.word!,
           count: 1,
           submittedBy: [participantId],
@@ -115,7 +127,7 @@ export const submitWord = functions.https.onCall(async (data: SubmitWordRequest,
       transaction.update(participantDoc.ref, {
         hasVoted: true,
         votedAt: Timestamp.now(),
-        submittedWord: cleanWord
+        submittedWord: normalizedWord
       });
 
       // Update room word count

@@ -29,6 +29,7 @@ const admin = __importStar(require("firebase-admin"));
 const firestore_1 = require("firebase-admin/firestore");
 const helpers_1 = require("../utils/helpers");
 const constants_1 = require("../utils/constants");
+const wordNormalizer_1 = require("../utils/wordNormalizer");
 const db = admin.firestore();
 exports.submitWord = functions.https.onCall(async (data, context) => {
     try {
@@ -76,13 +77,22 @@ exports.submitWord = functions.https.onCall(async (data, context) => {
         if (roomData.requiresConfirmation && !roomData.isActive) {
             return (0, helpers_1.createErrorResponse)(constants_1.ERROR_CODES.INVALID_INPUT, 'La votación no ha comenzado');
         }
-        const cleanWord = wordValidation.word.toLowerCase();
+        // Normalize the word for duplicate detection
+        const normalizedWord = (0, wordNormalizer_1.normalizeWord)(wordValidation.word);
+        // Validate normalized word
+        if (!(0, wordNormalizer_1.isValidNormalizedWord)(normalizedWord)) {
+            return (0, helpers_1.createErrorResponse)(constants_1.ERROR_CODES.INVALID_WORD, 'La palabra contiene caracteres no válidos o está vacía después de la normalización');
+        }
+        functions.logger.info('Word normalization:', {
+            original: wordValidation.word,
+            normalized: normalizedWord
+        });
         // Use transaction to ensure consistency
         await db.runTransaction(async (transaction) => {
-            // Check if word already exists for this room
+            // Check if word already exists for this room (using normalized version)
             const wordQuery = await transaction.get(db.collection(constants_1.COLLECTIONS.WORDS)
                 .where('roomId', '==', participantData.roomId)
-                .where('text', '==', cleanWord)
+                .where('text', '==', normalizedWord)
                 .limit(1));
             let wordRef;
             if (!wordQuery.empty) {
@@ -100,7 +110,7 @@ exports.submitWord = functions.https.onCall(async (data, context) => {
                 wordRef = db.collection(constants_1.COLLECTIONS.WORDS).doc();
                 transaction.set(wordRef, {
                     roomId: participantData.roomId,
-                    text: cleanWord,
+                    text: normalizedWord,
                     originalText: wordValidation.word,
                     count: 1,
                     submittedBy: [participantId],
@@ -112,7 +122,7 @@ exports.submitWord = functions.https.onCall(async (data, context) => {
             transaction.update(participantDoc.ref, {
                 hasVoted: true,
                 votedAt: firestore_1.Timestamp.now(),
-                submittedWord: cleanWord
+                submittedWord: normalizedWord
             });
             // Update room word count
             transaction.update(roomDoc.ref, {

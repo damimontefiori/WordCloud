@@ -5,6 +5,7 @@ import { db } from '../services/firebase'
 import { doc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore'
 import toast from 'react-hot-toast'
 import WordCloudVisualization from '../components/WordCloudVisualization'
+import { normalizeWord, isValidWord, processWord } from '../utils/wordNormalizer'
 
 const Room = () => {
   const { roomCode } = useParams()
@@ -102,17 +103,35 @@ const Room = () => {
     setIsLoading(true)
     
     try {
+      // Process and validate the word using normalization
+      const wordProcessed = processWord(word.trim())
+      
+      if (!wordProcessed.isValid) {
+        toast.error('La palabra contiene caracteres no válidos o está vacía')
+        return
+      }
+
+      if (wordProcessed.isEmpty) {
+        toast.error('Por favor, ingresa una palabra válida')
+        return
+      }
+
+      console.log('Word normalization:', {
+        original: wordProcessed.original,
+        normalized: wordProcessed.normalized
+      })
+
       await api.submitWord({
         roomCode,
         participantId: participant.id,
-        word: word.trim()
+        word: wordProcessed.original // Send original but server will normalize
       })
       
       // Mark as voted
       localStorage.setItem(`voted_${roomCode}`, 'true')
       setHasVoted(true)
       setWord('')
-      toast.success('¡Palabra enviada exitosamente!')
+      toast.success(`¡Palabra "${wordProcessed.normalized}" enviada exitosamente!`)
       
     } catch (error) {
       console.error('Error submitting word:', error)

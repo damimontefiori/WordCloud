@@ -1,5 +1,6 @@
 import { httpsCallable } from 'firebase/functions';
 import { auth, db, functions } from './firebase.js';
+import { normalizeWord } from '../utils/wordNormalizer.js';
 import {
   addDoc,
   collection,
@@ -154,9 +155,13 @@ export const apiService = {
       throw new Error('La sala no está activa');
     }
     
+    // Normalize the word for consistent storage and duplicate detection
+    const normalizedWord = normalizeWord(word.trim());
+    
     // Create word record
     const wordData = {
-      text: word.trim().toLowerCase(),
+      text: normalizedWord,
+      originalText: word.trim(),
       participantId: participantId || 'anonymous',
       roomId: roomDoc.id,
       roomCode: roomCode.toUpperCase(),
@@ -164,11 +169,11 @@ export const apiService = {
       count: 1
     };
     
-    // Check if word already exists for this room
+    // Check if word already exists for this room (using normalized version)
     const existingWordQuery = query(
       collection(db, 'words'),
       where('roomId', '==', roomDoc.id),
-      where('text', '==', word.trim().toLowerCase())
+      where('text', '==', normalizedWord)
     );
     
     const existingWordSnapshot = await getDocs(existingWordQuery);
