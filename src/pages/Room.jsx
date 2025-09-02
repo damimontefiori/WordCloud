@@ -15,11 +15,18 @@ const Room = () => {
   const [word, setWord] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [roomLoading, setRoomLoading] = useState(true)
+  const [hasVoted, setHasVoted] = useState(false)
   
   // Get participant data from localStorage
   const participant = JSON.parse(localStorage.getItem('participant') || 'null')
   const hasJoined = participant && participant.roomCode === roomCode
-  const hasVoted = localStorage.getItem(`voted_${roomCode}`) === 'true'
+  
+  // Check voted status on mount and when roomCode changes
+  useEffect(() => {
+    const voted = localStorage.getItem(`voted_${roomCode}`) === 'true'
+    console.log('🔧 hasVoted useEffect - roomCode:', roomCode, 'voted from localStorage:', voted)
+    setHasVoted(voted)
+  }, [roomCode])
 
   // Set up real-time listeners
   useEffect(() => {
@@ -101,6 +108,7 @@ const Room = () => {
       
       // Mark as voted
       localStorage.setItem(`voted_${roomCode}`, 'true')
+      setHasVoted(true)
       setWord('')
       toast.success('¡Palabra enviada exitosamente!')
       

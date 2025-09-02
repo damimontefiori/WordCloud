@@ -27,34 +27,31 @@ const Join = () => {
 
     setLoading(true)
     try {
-      // Generate a unique session ID for this participant
-      const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-      
-      // Intentar unirse a la sala usando Firebase Function
+      // Try to join the room using the API (with Functions fallback to Firestore)
       const result = await api.joinRoom({
         roomCode: roomCode.toUpperCase(),
-        participantName: participantName.trim(),
-        sessionId
+        participantName: participantName.trim()
       })
       
-      console.log('Unido a la sala:', result)
-      console.log('🔍 participantId recibido:', result.data.participantId)
-      console.log('📋 Resultado completo:', JSON.stringify(result, null, 2))
+      console.log('🎉 Successfully joined room:', result)
       
-      // Guardar datos del participante en localStorage
-      localStorage.setItem('participant', JSON.stringify({
+      // Save participant info to localStorage
+      const participantInfo = {
         id: result.data.participantId,
-        name: participantName,
-        roomCode: roomCode.toUpperCase()
-      }))
+        name: participantName.trim(),
+        roomCode: roomCode.toUpperCase(),
+        roomId: result.data.roomId,
+        joinedAt: new Date().toISOString()
+      }
       
-      console.log('💾 Guardado en localStorage:', JSON.stringify({
-        id: result.data.participantId,
-        name: participantName,
-        roomCode: roomCode.toUpperCase()
-      }, null, 2))
+      localStorage.setItem('participant', JSON.stringify(participantInfo))
       
-      // Navegar a la sala usando el roomCode
+      console.log('💾 Participant info saved:', participantInfo)
+      
+      // Show success message
+      toast.success(`¡Te has unido a la sala ${roomCode.toUpperCase()}!`)
+      
+      // Navigate to the room
       navigate(`/room/${roomCode.toUpperCase()}`)
       
     } catch (error) {

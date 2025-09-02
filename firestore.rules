@@ -14,16 +14,19 @@ service cloud.firestore {
         request.auth.uid == resource.data.createdBy;
     }
     
-    // Words - lectura pública, escritura solo por Cloud Functions
+    // Words - lectura pública, escritura permitida si la sala está activa
     match /words/{wordId} {
       allow read: if true; // Lectura pública para mostrar word cloud
-      allow write: if false; // Solo Cloud Functions pueden escribir
+      allow create: if true; // Permitir que invitados envíen palabras
+      allow update: if true; // Permitir incrementar contador de palabras existentes
+      allow delete: if false; // No permitir eliminar palabras
     }
     
-    // Participants - lectura pública, escritura solo por Cloud Functions
+    // Participants - lectura pública, escritura permitida para unirse
     match /participants/{participantId} {
       allow read: if true; // Lectura pública para contar participantes
-      allow write: if false; // Solo Cloud Functions pueden escribir
+      allow create: if true; // Permitir que invitados se unan
+      allow update, delete: if false; // Solo lectura después de unirse
     }
   }
 }

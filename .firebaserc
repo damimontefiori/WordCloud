@@ -1,6 +1,9 @@
 {
   "projects": {
-    "default": "demo-wordcloud"
+    "default": "wordcloudlive",
+    "prod": "wordcloudlive"
   },
-  "use": "emulators"
+  "targets": {},
+  "etags": {},
+  "use": "default"
 }

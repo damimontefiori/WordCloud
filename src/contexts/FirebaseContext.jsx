@@ -103,21 +103,37 @@ export const FirebaseProvider = ({ children }) => {
     },
     
     subscribeToParticipants: (roomId, callback) => {
+      console.log('🔍 Setting up participants subscription for roomId:', roomId)
       const participantsQuery = query(
         collection(db, 'participants'),
-        where('roomId', '==', roomId),
-        orderBy('joinedAt', 'asc')
+        where('roomId', '==', roomId)
+        // TODO: Add orderBy after creating index in Firestore
+        // orderBy('joinedAt', 'asc')
       )
-      return onSnapshot(participantsQuery, callback)
+      return onSnapshot(participantsQuery, (snapshot) => {
+        console.log('📝 Participants subscription fired, snapshot size:', snapshot.size)
+        snapshot.docs.forEach(doc => {
+          console.log('📄 Participant doc:', doc.id, doc.data())
+        })
+        callback(snapshot)
+      })
     },
     
     subscribeToWords: (roomId, callback) => {
+      console.log('🔍 Setting up words subscription for roomId:', roomId)
       const wordsQuery = query(
         collection(db, 'words'),
-        where('roomId', '==', roomId),
-        orderBy('createdAt', 'desc')
+        where('roomId', '==', roomId)
+        // TODO: Add orderBy after creating index in Firestore
+        // orderBy('createdAt', 'desc')
       )
-      return onSnapshot(wordsQuery, callback)
+      return onSnapshot(wordsQuery, (snapshot) => {
+        console.log('📝 Words subscription fired, snapshot size:', snapshot.size)
+        snapshot.docs.forEach(doc => {
+          console.log('📄 Word doc:', doc.id, doc.data())
+        })
+        callback(snapshot)
+      })
     }
   }
 
