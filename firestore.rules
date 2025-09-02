@@ -19,14 +19,17 @@ service cloud.firestore {
       allow read: if true; // Lectura pública para mostrar word cloud
       allow create: if true; // Permitir que invitados envíen palabras
       allow update: if true; // Permitir incrementar contador de palabras existentes
-      allow delete: if false; // No permitir eliminar palabras
+      allow delete: if request.auth != null && 
+        request.auth.uid == get(/databases/$(database)/documents/rooms/$(resource.data.roomId)).data.createdBy;
     }
     
     // Participants - lectura pública, escritura permitida para unirse
     match /participants/{participantId} {
       allow read: if true; // Lectura pública para contar participantes
       allow create: if true; // Permitir que invitados se unan
-      allow update, delete: if false; // Solo lectura después de unirse
+      allow update: if false; // Solo lectura después de unirse
+      allow delete: if request.auth != null && 
+        request.auth.uid == get(/databases/$(database)/documents/rooms/$(resource.data.roomId)).data.createdBy;
     }
   }
 }
