@@ -22,9 +22,14 @@ const Home = () => {
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             {currentUser ? (
-              <Link to="/dashboard" className="btn btn-primary text-lg px-8 py-3">
-                Ir al Dashboard
-              </Link>
+              <>
+                <Link to="/dashboard" className="btn btn-primary text-lg px-8 py-3">
+                  Ir al Dashboard
+                </Link>
+                <Link to="/join" className="btn btn-secondary text-lg px-8 py-3">
+                  Unirme a sala de otro presentador
+                </Link>
+              </>
             ) : (
               <>
                 <Link to="/login" className="btn btn-primary text-lg px-8 py-3">
