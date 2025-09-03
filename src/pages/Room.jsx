@@ -336,12 +336,12 @@ const Room = () => {
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">{roomTitle}</h1>
-              <div className="flex items-center mt-1 text-sm text-gray-600">
-                <span className="mr-4">Código: {roomData.code}</span>
-                <span className="mr-4">Participantes: {participantCount}</span>
+          <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 truncate">{roomTitle}</h1>
+              <div className="flex flex-wrap items-center mt-1 text-xs sm:text-sm text-gray-600 gap-x-4 gap-y-1">
+                <span>Código: {roomData.code}</span>
+                <span>Participantes: {participantCount}</span>
                 <span className={`px-2 py-1 rounded-full text-xs ${
                   roomData.state === 'active' ? 'bg-green-100 text-green-800' :
                   roomData.state === 'waiting' ? 'bg-yellow-100 text-yellow-800' :
@@ -350,25 +350,29 @@ const Room = () => {
                   {roomData.state === 'active' ? 'Activa' : 
                    roomData.state === 'waiting' ? 'Esperando' : 'Finalizada'}
                 </span>
+              </div>
+              
+              {/* Botones de acción - En móvil van abajo del título */}
+              <div className="flex flex-wrap gap-2 mt-3 lg:hidden">
                 {/* Botón para iniciar la sala */}
                 {roomData.state === 'waiting' && (
                   <button
                     onClick={handleActivateRoom}
                     disabled={isActivating}
-                    className={`ml-4 inline-flex items-center px-4 py-2 text-white text-sm font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg transform ${
+                    className={`inline-flex items-center px-3 py-2 text-white text-xs font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg ${
                       isActivating 
                         ? 'bg-gray-400 cursor-not-allowed' 
-                        : 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 hover:scale-105'
+                        : 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700'
                     }`}
                   >
                     {isActivating ? (
                       <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></div>
                         Iniciando...
                       </>
                     ) : (
                       <>
-                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h1m4 0h1m6-8V8a2 2 0 00-2-2H4a2 2 0 00-2 2v8a2 2 0 002-2V8z" />
                         </svg>
                         Iniciar Sala
@@ -381,9 +385,9 @@ const Room = () => {
                 {isAdmin && (
                   <button
                     onClick={enterPresentationMode}
-                    className="ml-4 inline-flex items-center px-4 py-2 text-white text-sm font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg transform bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 hover:scale-105"
+                    className="inline-flex items-center px-3 py-2 text-white text-xs font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700"
                   >
-                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4m-4 0l5.656 5.656m11.314 0L16 4m4 0v4m0-4h-4M4 16v4m0 0h4m-4 0l5.656-5.656M20 20l-5.656-5.656M20 20v-4m0 4h-4" />
                     </svg>
                     Modo Presentación
@@ -392,19 +396,65 @@ const Room = () => {
               </div>
             </div>
             
-            {hasJoined && !isAdmin && (
-              <div className="text-right">
-                <p className="text-sm text-gray-600">Conectado como:</p>
-                <p className="font-semibold text-gray-900">{participant.name}</p>
-              </div>
-            )}
+            {/* Botones de acción - En desktop van a la derecha */}
+            <div className="hidden lg:flex items-center gap-4">
+              {/* Botón para iniciar la sala */}
+              {roomData.state === 'waiting' && (
+                <button
+                  onClick={handleActivateRoom}
+                  disabled={isActivating}
+                  className={`inline-flex items-center px-4 py-2 text-white text-sm font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg transform ${
+                    isActivating 
+                      ? 'bg-gray-400 cursor-not-allowed' 
+                      : 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 hover:scale-105'
+                  }`}
+                >
+                  {isActivating ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Iniciando...
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h1m4 0h1m6-8V8a2 2 0 00-2-2H4a2 2 0 00-2 2v8a2 2 0 002-2V8z" />
+                      </svg>
+                      Iniciar Sala
+                    </>
+                  )}
+                </button>
+              )}
+              
+              {/* Botón de modo presentación - solo para administradores */}
+              {isAdmin && (
+                <button
+                  onClick={enterPresentationMode}
+                  className="inline-flex items-center px-4 py-2 text-white text-sm font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg transform bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 hover:scale-105"
+                >
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4m-4 0l5.656 5.656m11.314 0L16 4m4 0v4m0-4h-4M4 16v4m0 0h4m-4 0l5.656-5.656M20 20l-5.656-5.656M20 20v-4m0 4h-4" />
+                  </svg>
+                  Modo Presentación
+                </button>
+              )}
+            </div>
             
-            {isAdmin && (
-              <div className="text-right">
-                <p className="text-sm text-gray-600">Administrador:</p>
-                <p className="font-semibold text-gray-900">{currentUser.email}</p>
-              </div>
-            )}
+            {/* Información del usuario - En móvil también va abajo */}
+            <div className="flex flex-col sm:flex-row sm:justify-between lg:justify-end gap-2 text-right">
+              {hasJoined && !isAdmin && (
+                <div>
+                  <p className="text-xs sm:text-sm text-gray-600">Conectado como:</p>
+                  <p className="font-semibold text-gray-900 text-sm truncate">{participant.name}</p>
+                </div>
+              )}
+              
+              {isAdmin && (
+                <div>
+                  <p className="text-xs sm:text-sm text-gray-600">Administrador:</p>
+                  <p className="font-semibold text-gray-900 text-sm truncate">{currentUser.email}</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

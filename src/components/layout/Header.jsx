@@ -30,14 +30,16 @@ const Header = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo y Badge Personal */}
-          <div className="flex-shrink-0 flex items-center">
+          <div className="flex-shrink-0 flex items-center min-w-0">
             <Link to="/" className="flex items-center">
-              <div className="w-8 h-8 bg-primary-600 rounded-lg mr-3 flex items-center justify-center">
+              <div className="w-8 h-8 bg-primary-600 rounded-lg mr-2 sm:mr-3 flex items-center justify-center">
                 <span className="text-white font-bold text-sm">W</span>
               </div>
-              <span className="font-bold text-xl text-gray-900">WordCloud</span>
+              <span className="font-bold text-lg sm:text-xl text-gray-900 truncate">WordCloud</span>
             </Link>
-            <PersonalBadge />
+            <div className="hidden sm:block">
+              <PersonalBadge />
+            </div>
           </div>
 
           {/* Navigation */}
@@ -76,25 +78,25 @@ const Header = () => {
           </nav>
 
           {/* User menu */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4 min-w-0">
             {currentUser ? (
-              <div className="flex items-center space-x-4">
-                <span className="text-sm text-gray-700">
+              <div className="flex items-center space-x-2 sm:space-x-4 min-w-0">
+                <span className="text-xs sm:text-sm text-gray-700 truncate max-w-32 sm:max-w-none">
                   {currentUser.email}
                 </span>
                 <button
                   onClick={handleLogout}
-                  className="btn btn-secondary text-sm"
+                  className="btn btn-secondary text-xs sm:text-sm whitespace-nowrap"
                 >
                   Cerrar Sesión
                 </button>
               </div>
             ) : (
-              <div className="flex items-center space-x-3">
-                <Link to="/join" className="text-sm text-gray-700 hover:text-gray-900">
+              <div className="flex items-center space-x-2 sm:space-x-3">
+                <Link to="/join" className="text-xs sm:text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap">
                   Unirse a sala
                 </Link>
-                <Link to="/login" className="btn btn-primary text-sm">
+                <Link to="/login" className="btn btn-primary text-xs sm:text-sm whitespace-nowrap">
                   Iniciar Sesión
                 </Link>
               </div>

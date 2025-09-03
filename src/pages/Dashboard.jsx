@@ -294,13 +294,13 @@ const Dashboard = () => {
             <div className="space-y-4">
               {rooms.map((room) => (
                 <div key={room.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
-                  <div className="flex justify-between items-start">
-                    <div>
+                  <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
+                    <div className="min-w-0 flex-1">
                       <h3 className="text-lg font-semibold text-gray-900">{room.title}</h3>
                       <p className="text-gray-600 text-sm">{room.description}</p>
-                      <div className="mt-2 flex items-center text-sm text-gray-500">
-                        <span className="mr-4">Código: {room.code}</span>
-                        <span className="mr-4">Participantes: {participantCounts[room.id] || 0}</span>
+                      <div className="mt-2 flex flex-wrap items-center text-sm text-gray-500 gap-2">
+                        <span>Código: {room.code}</span>
+                        <span>Participantes: {participantCounts[room.id] || 0}</span>
                         <span className={`px-2 py-1 rounded-full text-xs ${
                           room.state === 'active' ? 'bg-green-100 text-green-800' :
                           room.state === 'waiting' ? 'bg-yellow-100 text-yellow-800' :
@@ -310,29 +310,29 @@ const Dashboard = () => {
                         </span>
                       </div>
                     </div>
-                    <div className="flex space-x-2">
-                      <button className="btn btn-secondary btn-sm" onClick={() => navigate(`/room/${room.code}`)}>
+                    <div className="flex flex-wrap gap-2 lg:flex-nowrap">
+                      <button className="btn btn-secondary btn-sm flex-1 lg:flex-initial" onClick={() => navigate(`/room/${room.code}`)}>
                         Ver Sala
                       </button>
                       <button 
-                        className="btn btn-primary btn-sm" 
+                        className="btn btn-primary btn-sm flex-1 lg:flex-initial" 
                         onClick={() => handleCopyLink(room.code)}
                         title="Copiar link para invitar participantes"
                       >
                         📋 Copiar Link
                       </button>
                       {room.state !== 'active' && (
-                        <button className="btn btn-success btn-sm" onClick={() => handleStartRoom(room.id)} disabled={actingOn === room.id}>
+                        <button className="btn btn-success btn-sm flex-1 lg:flex-initial" onClick={() => handleStartRoom(room.id)} disabled={actingOn === room.id}>
                           {actingOn === room.id ? 'Procesando…' : 'Iniciar'}
                         </button>
                       )}
                       {room.state !== 'ended' && (
-                        <button className="btn btn-warning btn-sm" onClick={() => handleEndRoom(room.id)} disabled={actingOn === room.id}>
+                        <button className="btn btn-warning btn-sm flex-1 lg:flex-initial" onClick={() => handleEndRoom(room.id)} disabled={actingOn === room.id}>
                           {actingOn === room.id ? 'Procesando…' : 'Finalizar'}
                         </button>
                       )}
                       <button 
-                        className="btn btn-danger btn-sm" 
+                        className="btn btn-danger btn-sm flex-1 lg:flex-initial" 
                         onClick={() => confirmDeleteRoom(room)} 
                         disabled={actingOn === room.id}
                         title="Eliminar sala y todos sus datos"
