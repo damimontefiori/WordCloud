@@ -59,12 +59,21 @@ const Login = () => {
       navigate(from, { replace: true })
     } catch (error) {
       console.error('Google Auth error:', error)
+      console.error('Error code:', error.code)
+      console.error('Error message:', error.message)
+      
       if (error.code === 'auth/popup-closed-by-user') {
         toast.error('Ventana cerrada por el usuario')
       } else if (error.code === 'auth/popup-blocked') {
         toast.error('Popup bloqueado por el navegador')
+      } else if (error.code === 'auth/unauthorized-domain') {
+        toast.error('Dominio no autorizado. Contacta al administrador.')
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        toast.error('Popup cancelado')
+      } else if (error.code === 'auth/network-request-failed') {
+        toast.error('Error de conexión. Verifica tu internet.')
       } else {
-        toast.error('Error al iniciar sesión con Google')
+        toast.error(`Error al iniciar sesión con Google: ${error.message}`)
       }
     } finally {
       setLoading(false)
