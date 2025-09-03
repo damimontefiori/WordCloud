@@ -23,6 +23,7 @@ const Dashboard = () => {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [roomTitle, setRoomTitle] = useState('')
   const [roomDescription, setRoomDescription] = useState('')
+  const [startAfterCreation, setStartAfterCreation] = useState(false)
   
   // Estados para el modal de confirmación de eliminación
   const [showDeleteModal, setShowDeleteModal] = useState(false)
@@ -90,6 +91,8 @@ const Dashboard = () => {
         maxParticipants: 50,
         timeLimit: 30,
         adminEmail: currentUser.email,
+        isActive: startAfterCreation,
+        state: startAfterCreation ? 'active' : 'waiting'
       }
       const result = await api.createRoom(roomData)
       await loadUserRooms()
@@ -97,6 +100,7 @@ const Dashboard = () => {
       // Limpiar el modal
       setRoomTitle('')
       setRoomDescription('')
+      setStartAfterCreation(false)
       setShowCreateModal(false)
       
       const roomCode = result?.data?.roomCode || result?.roomCode
@@ -351,6 +355,23 @@ const Dashboard = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
               </div>
+
+              <div>
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={startAfterCreation}
+                    onChange={(e) => setStartAfterCreation(e.target.checked)}
+                    className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 focus:ring-2"
+                  />
+                  <span className="text-sm font-medium text-gray-700">
+                    Iniciar tras creación
+                  </span>
+                </label>
+                <p className="text-xs text-gray-500 mt-1 ml-6">
+                  Si está marcado, la sala se iniciará automáticamente y los participantes podrán enviar palabras inmediatamente
+                </p>
+              </div>
             </div>
 
             {error && (
@@ -365,6 +386,7 @@ const Dashboard = () => {
                   setShowCreateModal(false)
                   setRoomTitle('')
                   setRoomDescription('')
+                  setStartAfterCreation(false)
                   setError('')
                 }}
                 className="btn btn-secondary flex-1"
