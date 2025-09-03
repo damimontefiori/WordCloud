@@ -63,17 +63,17 @@ body {
   /* Personal Badge */
   .personal-badge {
     @apply inline-flex items-center px-3 py-1 ml-3 text-xs font-medium;
-    background: rgba(15, 23, 42, 0.7);
+    background: rgba(148, 163, 184, 0.15);
     backdrop-filter: blur(8px);
-    border: 1px solid rgba(148, 163, 184, 0.2);
+    border: 1px solid rgba(148, 163, 184, 0.3);
     border-radius: 999px;
-    color: #dfe7ff;
+    color: #334155;
     transition: all 0.2s ease;
   }
   
   .personal-badge:hover {
-    background: rgba(15, 23, 42, 0.8);
-    border-color: rgba(148, 163, 184, 0.3);
+    background: rgba(148, 163, 184, 0.25);
+    border-color: rgba(148, 163, 184, 0.4);
   }
 
   /* Modal About Animations */

@@ -1,8 +1,23 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { buildInfo } from '../../utils/buildInfo'
 
 const VersionInfo = () => {
   const [showTooltip, setShowTooltip] = useState(false)
+  const [isPresentationMode, setIsPresentationMode] = useState(false)
+
+  useEffect(() => {
+    // Detectar modo presentación por URL o parámetros
+    const urlParams = new URLSearchParams(window.location.search)
+    const isPresentation = urlParams.get('presentation') === 'true' || 
+                          window.location.pathname.includes('/presentation') ||
+                          window.location.pathname.includes('/room/')
+    setIsPresentationMode(isPresentation)
+  }, [])
+
+  // No mostrar en modo presentación
+  if (isPresentationMode) {
+    return null
+  }
 
   return (
     <div className="fixed top-4 left-4 z-50">

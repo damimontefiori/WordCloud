@@ -373,18 +373,18 @@ const Dashboard = () => {
               </div>
 
               <div>
-                <label className="flex items-center space-x-2 cursor-pointer">
+                <label className="flex items-center cursor-pointer">
                   <input
                     type="checkbox"
                     checked={startAfterCreation}
                     onChange={(e) => setStartAfterCreation(e.target.checked)}
-                    className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 focus:ring-2"
+                    className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 focus:ring-2 mr-2"
                   />
                   <span className="text-sm font-medium text-gray-700">
                     Iniciar tras creación
                   </span>
                 </label>
-                <p className="text-xs text-gray-500 mt-1 ml-6">
+                <p className="text-xs text-gray-500 mt-1">
                   Si está marcado, la sala se iniciará automáticamente y los participantes podrán enviar palabras inmediatamente
                 </p>
               </div>
