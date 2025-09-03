@@ -1,21 +1,21 @@
 import React, { useState, useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import { buildInfo } from '../../utils/buildInfo'
 
 const VersionInfo = () => {
   const [showTooltip, setShowTooltip] = useState(false)
-  const [isPresentationMode, setIsPresentationMode] = useState(false)
+  const location = useLocation()
 
-  useEffect(() => {
-    // Detectar modo presentación por URL o parámetros
-    const urlParams = new URLSearchParams(window.location.search)
-    const isPresentation = urlParams.get('presentation') === 'true' || 
-                          window.location.pathname.includes('/presentation') ||
-                          window.location.pathname.includes('/room/')
-    setIsPresentationMode(isPresentation)
-  }, [])
+  // Detectar modo presentación usando el hook useLocation
+  const isPresentationMode = () => {
+    const urlParams = new URLSearchParams(location.search)
+    return urlParams.get('presentation') === 'true' || 
+           location.pathname.includes('/presentation') ||
+           location.pathname.includes('/room/')
+  }
 
   // No mostrar en modo presentación
-  if (isPresentationMode) {
+  if (isPresentationMode()) {
     return null
   }
 
