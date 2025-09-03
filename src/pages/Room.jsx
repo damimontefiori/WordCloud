@@ -264,14 +264,14 @@ const Room = () => {
     <div className="fixed inset-0 bg-gradient-to-br from-blue-900 via-purple-900 to-blue-800 z-50 flex flex-col">
       {/* Header minimalista */}
       <div className="bg-black bg-opacity-30 backdrop-blur-sm">
-        <div className="flex justify-between items-center p-6">
-          <div>
-            <h1 className="text-3xl font-bold text-white">{roomTitle}</h1>
-            <div className="flex items-center mt-2 text-lg text-blue-200">
-              <span className="mr-6">Código: {roomData.code}</span>
-              <span className="mr-6">Participantes: {participantCount}</span>
-              <span className="mr-6">Palabras: {words.length}</span>
-              <span className={`px-3 py-1 rounded-full text-sm ${
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-4 sm:p-6 gap-4">
+          <div className="min-w-0 flex-1">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white truncate">{roomTitle}</h1>
+            <div className="flex flex-wrap items-center mt-2 text-sm sm:text-base lg:text-lg text-blue-200 gap-x-3 sm:gap-x-6 gap-y-1">
+              <span>Código: {roomData.code}</span>
+              <span>Participantes: {participantCount}</span>
+              <span>Palabras: {words.length}</span>
+              <span className={`px-2 py-1 rounded-full text-xs sm:text-sm ${
                 roomData.state === 'active' ? 'bg-green-500 text-white' :
                 roomData.state === 'waiting' ? 'bg-yellow-500 text-black' :
                 'bg-gray-500 text-white'
@@ -284,33 +284,34 @@ const Room = () => {
           
           <button
             onClick={exitPresentationMode}
-            className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg flex items-center transition-colors duration-200"
+            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 sm:px-6 sm:py-3 rounded-lg flex items-center justify-center transition-colors duration-200 text-sm sm:text-base whitespace-nowrap"
           >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
-            Salir de Presentación
+            <span className="hidden sm:inline">Salir de Presentación</span>
+            <span className="sm:hidden">Salir</span>
           </button>
         </div>
       </div>
 
       {/* Área principal de la nube de palabras */}
-      <div className="flex-1 flex items-center justify-center p-8">
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-8">
         {words.length === 0 ? (
-          <div className="text-center">
-            <svg className="w-24 h-24 text-white opacity-50 mx-auto mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="text-center max-w-md sm:max-w-2xl">
+            <svg className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 text-white opacity-50 mx-auto mb-4 sm:mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
             </svg>
-            <h2 className="text-4xl font-bold text-white mb-4">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-3 sm:mb-4">
               Esperando las primeras palabras...
             </h2>
-            <p className="text-xl text-blue-200">
+            <p className="text-base sm:text-lg lg:text-xl text-blue-200">
               {roomData.state === 'waiting' ? 'Inicia la sala para comenzar a recibir palabras' : 'Los participantes pueden enviar sus palabras ahora'}
             </p>
           </div>
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <div className="text-center max-w-6xl w-full">
+            <div className="text-center max-w-full w-full">
               <WordCloudVisualization 
                 words={words} 
                 presentationMode={true}
@@ -321,13 +322,14 @@ const Room = () => {
       </div>
 
       {/* Footer con instrucciones */}
-      <div className="bg-black bg-opacity-30 backdrop-blur-sm p-4">
+      <div className="bg-black bg-opacity-30 backdrop-blur-sm p-3 sm:p-4">
         <div className="flex justify-center items-center text-white">
-          <div className="flex items-center text-lg">
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-3.586l6.879-6.88a6 6 0 018.242-.002 6 6 0 011.879 6.468v.006z" />
+          <div className="flex items-center text-sm sm:text-base lg:text-lg">
+            <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            Presiona ESC para salir del modo presentación
+            <span className="hidden sm:inline">Presiona ESC para salir del modo presentación</span>
+            <span className="sm:hidden">Toca el botón "Salir" para terminar la presentación</span>
           </div>
         </div>
       </div>
