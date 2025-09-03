@@ -146,7 +146,6 @@ const Room = () => {
     }
   }
 
-  // Función temporal para activar la sala (solo para demostración)
   const handleActivateRoom = async () => {
     if (isActivating) return
     
@@ -178,6 +177,15 @@ const Room = () => {
     } finally {
       setIsActivating(false)
     }
+  }
+
+  const handleCopyLink = () => {
+    const link = `${window.location.origin}/join?code=${roomCode}`
+    navigator.clipboard.writeText(link).then(() => {
+      toast.success('¡Link copiado al portapapeles!')
+    }).catch(() => {
+      toast.error('Error al copiar el link')
+    })
   }
 
   // Funciones para modo presentación
@@ -354,6 +362,20 @@ const Room = () => {
               
               {/* Botones de acción - En móvil van abajo del título */}
               <div className="flex flex-wrap gap-2 mt-3 lg:hidden">
+                {/* Botón para copiar link - solo para administradores */}
+                {isAdmin && (
+                  <button
+                    onClick={handleCopyLink}
+                    className="inline-flex items-center px-3 py-2 bg-blue-600 text-white text-xs font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg hover:bg-blue-700"
+                    title="Copiar link para invitar participantes"
+                  >
+                    <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    Copiar Link
+                  </button>
+                )}
+                
                 {/* Botón para iniciar la sala */}
                 {roomData.state === 'waiting' && (
                   <button
@@ -398,6 +420,20 @@ const Room = () => {
             
             {/* Botones de acción - En desktop van a la derecha */}
             <div className="hidden lg:flex items-center gap-4">
+              {/* Botón para copiar link - solo para administradores */}
+              {isAdmin && (
+                <button
+                  onClick={handleCopyLink}
+                  className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 hover:bg-blue-700"
+                  title="Copiar link para invitar participantes"
+                >
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                  Copiar Link
+                </button>
+              )}
+              
               {/* Botón para iniciar la sala */}
               {roomData.state === 'waiting' && (
                 <button
