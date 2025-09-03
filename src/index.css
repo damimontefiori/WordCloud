@@ -20,6 +20,31 @@ body {
   background-color: var(--color-background);
   color: var(--color-foreground);
   line-height: 1.6;
+  /* Evitar zoom en iOS al tocar inputs */
+  -webkit-text-size-adjust: 100%;
+  -webkit-touch-callout: none;
+}
+
+/* Optimizaciones móviles */
+@media (max-width: 768px) {
+  /* Evitar zoom en inputs iOS */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  textarea {
+    font-size: 16px !important;
+  }
+  
+  /* Mejorar área de toque */
+  button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Scroll suave en móviles */
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 /* Componentes personalizados */

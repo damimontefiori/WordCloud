@@ -1,0 +1,48 @@
+{
+  "name": "WordCloud App",
+  "short_name": "WordCloud",
+  "description": "Crea sesiones colaborativas de Word Cloud en tiempo real",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/wordcloud-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png", 
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "categories": ["education", "productivity", "utilities"],
+  "lang": "es",
+  "scope": "/",
+  "shortcuts": [
+    {
+      "name": "Unirse a Sala",
+      "short_name": "Unirse",
+      "description": "Unirse rápidamente a una sala existente",
+      "url": "/mobile-join",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Dashboard",
+      "short_name": "Panel",
+      "description": "Administrar mis salas",
+      "url": "/dashboard",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ],
+  "prefer_related_applications": false
+}

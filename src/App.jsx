@@ -13,11 +13,13 @@ import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Room from './pages/Room'
 import Join from './pages/Join'
+import MobileJoin from './pages/MobileJoin'
 
 // Components
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import Layout from './components/layout/Layout'
 import VersionInfo from './components/layout/VersionInfo'
+import MobileRedirect from './components/MobileRedirect'
 
 // Create a client
 const queryClient = new QueryClient({
@@ -76,12 +78,15 @@ function App() {
         <FirebaseProvider>
           <AuthProvider>
             <Router>
-              <Layout>
-                <Routes>
+              <MobileRedirect>
+                <Layout>
+                  <Routes>
                   {/* Rutas públicas */}
                   <Route path="/" element={<Home />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/join" element={<Join />} />
+                  <Route path="/mobile-join" element={<MobileJoin />} />
+                  <Route path="/mobile-join/:roomCode" element={<MobileJoin />} />
                   <Route path="/room/:roomCode" element={<Room />} />
                   
                   {/* Rutas protegidas */}
@@ -98,6 +103,7 @@ function App() {
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
               </Layout>
+              </MobileRedirect>
               
               {/* Version Info - Fixed position */}
               <VersionInfo />
