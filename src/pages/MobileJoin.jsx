@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
-import { doc, onSnapshot, updateDoc, arrayUnion, serverTimestamp, getDoc } from 'firebase/firestore'
+import { collection, query, where, getDocs, doc, updateDoc, arrayUnion, serverTimestamp } from 'firebase/firestore'
 import { db } from '../services/firebase'
 import { getRandomGeekName } from '../utils/geekNames'
 import useDeviceDetection from '../hooks/useDeviceDetection'
@@ -25,10 +25,15 @@ const MobileJoinPage = () => {
     }
   }, [roomCode, searchParams])
 
-  // Buscar sala automáticamente cuando hay código
+  // Buscar sala automáticamente cuando hay código completo (6 dígitos)
   useEffect(() => {
-    if (participant.code && participant.code.length >= 4) {
+    if (participant.code && participant.code.length >= 6) {
       checkRoom(participant.code)
+    } else if (participant.code && participant.code.length < 6) {
+      // Limpiar estado si el código es incompleto
+      setRoom(null)
+      setError('')
+      setLoading(false)
     }
   }, [participant.code])
 
@@ -37,11 +42,20 @@ const MobileJoinPage = () => {
       setLoading(true)
       setError('')
       
-      const roomDoc = await getDoc(doc(db, 'rooms', code.toUpperCase()))
-      if (roomDoc.exists()) {
+      console.log('🔍 Buscando sala con código:', code)
+      
+      // Buscar sala por el campo 'code' en lugar de por ID del documento
+      const roomsRef = collection(db, 'rooms')
+      const q = query(roomsRef, where('code', '==', code.toUpperCase()))
+      const querySnapshot = await getDocs(q)
+      
+      if (!querySnapshot.empty) {
+        const roomDoc = querySnapshot.docs[0]
         const roomData = roomDoc.data()
+        console.log('✅ Sala encontrada:', roomData)
         setRoom({ id: roomDoc.id, ...roomData })
       } else {
+        console.log('❌ Sala no encontrada para código:', code)
         setRoom(null)
         setError('Sala no encontrada')
       }
@@ -60,8 +74,8 @@ const MobileJoinPage = () => {
       return
     }
 
-    if (room.status !== 'active') {
-      toast.error('La sala no está activa en este momento')
+    if (room.state !== 'active' && room.state !== 'waiting') {
+      toast.error('La sala no está disponible en este momento')
       return
     }
 
@@ -70,6 +84,8 @@ const MobileJoinPage = () => {
       
       // Si no hay nombre, asignar uno automáticamente
       const finalName = participant.name.trim() || getRandomGeekName()
+      
+      console.log('🚀 Uniéndose a sala:', room.id, 'con nombre:', finalName)
       
       const roomRef = doc(db, 'rooms', room.id)
       await updateDoc(roomRef, {
@@ -80,8 +96,8 @@ const MobileJoinPage = () => {
         })
       })
 
-      // Redirigir a la sala
-      window.location.href = `/room/${room.id}?participant=${encodeURIComponent(finalName)}`
+      // Redirigir a la sala usando el código de la sala
+      window.location.href = `/room/${room.code}?participant=${encodeURIComponent(finalName)}`
       
     } catch (error) {
       console.error('Error joining room:', error)
@@ -139,7 +155,7 @@ const MobileJoinPage = () => {
                 autoComplete="off"
                 style={{ fontSize: '18px' }} // Evita zoom en iOS
               />
-              {loading && participant.code.length >= 4 && (
+              {loading && participant.code.length >= 6 && (
                 <div className="mt-2 flex items-center justify-center">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-600"></div>
                   <span className="ml-2 text-sm text-gray-600">Buscando sala...</span>
@@ -162,11 +178,13 @@ const MobileJoinPage = () => {
                 <div className="flex items-center justify-between mt-3 text-xs text-gray-500">
                   <span>{room.participants?.length || 0} participantes</span>
                   <span className={`px-2 py-1 rounded-full ${
-                    room.status === 'active' 
+                    room.state === 'active' 
                       ? 'bg-green-100 text-green-800' 
+                      : room.state === 'waiting'
+                      ? 'bg-blue-100 text-blue-800'
                       : 'bg-yellow-100 text-yellow-800'
                   }`}>
-                    {room.status === 'active' ? 'Activa' : 'Inactiva'}
+                    {room.state === 'active' ? 'Activa' : room.state === 'waiting' ? 'Esperando' : 'Inactiva'}
                   </span>
                 </div>
               </div>
@@ -193,9 +211,9 @@ const MobileJoinPage = () => {
             {/* Botón de unirse */}
             <button
               onClick={handleJoinRoom}
-              disabled={!room || isJoining || room?.status !== 'active'}
+              disabled={!room || isJoining || (room?.state !== 'active' && room?.state !== 'waiting')}
               className={`w-full py-4 px-6 rounded-lg font-medium transition-all duration-200 ${
-                room && room.status === 'active' && !isJoining
+                room && (room.state === 'active' || room.state === 'waiting') && !isJoining
                   ? 'bg-primary-600 text-white hover:bg-primary-700 transform hover:scale-105 shadow-lg'
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }`}
@@ -205,10 +223,12 @@ const MobileJoinPage = () => {
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
                   Uniéndose...
                 </div>
-              ) : room && room.status === 'active' ? (
+              ) : room && (room.state === 'active' || room.state === 'waiting') ? (
                 '🚀 Unirse a la Sala'
-              ) : room && room.status !== 'active' ? (
-                '⏸️ Sala Inactiva'
+              ) : room && room.state !== 'active' && room.state !== 'waiting' ? (
+                '⏸️ Sala No Disponible'
+              ) : participant.code.length < 6 ? (
+                '📝 Ingresa código completo (6 dígitos)'
               ) : (
                 '🔍 Buscar Sala Primero'
               )}
