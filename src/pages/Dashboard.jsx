@@ -6,6 +6,7 @@ import toast from 'react-hot-toast'
 import { useAuth } from '../contexts/AuthContext'
 import { useFirebase } from '../contexts/FirebaseContext'
 import { deleteRoom } from '../services/deleteRoom'
+import EmailVerificationBanner from '../components/auth/EmailVerificationBanner'
 
 const Dashboard = () => {
   const navigate = useNavigate()
@@ -82,6 +83,13 @@ const Dashboard = () => {
 
   const handleCreateRoom = async () => {
     if (!currentUser) return
+    
+    // Check if email is verified
+    if (!currentUser.emailVerified) {
+      toast.error('Debes verificar tu email antes de crear una sala')
+      return
+    }
+    
     setCreateRoomLoading(true)
     setError('')
     try {
@@ -183,6 +191,9 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Email Verification Banner */}
+        <EmailVerificationBanner />
+        
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
           <p className="mt-2 text-gray-600">
@@ -200,8 +211,22 @@ const Dashboard = () => {
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Crear Nueva Sala</h3>
               <p className="text-gray-600 text-sm mb-4">Inicia una nueva sesión de Word Cloud</p>
-              <button className="btn btn-primary w-full" onClick={() => setShowCreateModal(true)} disabled={createRoomLoading}>
-                Crear Sala
+              <button 
+                className={`btn w-full ${currentUser?.emailVerified ? 'btn-primary' : 'btn-secondary opacity-60'}`} 
+                onClick={() => setShowCreateModal(true)} 
+                disabled={createRoomLoading || !currentUser?.emailVerified}
+                title={!currentUser?.emailVerified ? 'Verifica tu email para crear salas' : ''}
+              >
+                {!currentUser?.emailVerified ? (
+                  <div className="flex items-center justify-center">
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-9a2 2 0 00-2-2H6a2 2 0 00-2 2v9a2 2 0 002 2zm10-12V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                    Crear Sala
+                  </div>
+                ) : (
+                  'Crear Sala'
+                )}
               </button>
             </div>
           </div>

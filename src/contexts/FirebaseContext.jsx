@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
-import { auth, db, functions } from '../services/firebase'
+import { auth, db, functions, googleProvider } from '../services/firebase'
 import { apiService } from '../services/api'
 import { 
   collection, 
@@ -73,6 +73,7 @@ export const FirebaseProvider = ({ children }) => {
     auth,
     db,
     functions,
+    googleProvider,
     api: apiService,
     
     // Real-time listeners

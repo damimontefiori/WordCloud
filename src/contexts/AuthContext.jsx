@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
-import { onAuthStateChanged, signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword } from 'firebase/auth'
+import { onAuthStateChanged, signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword, signInWithPopup, sendEmailVerification } from 'firebase/auth'
 import { useFirebase } from './FirebaseContext'
 import LoadingSpinner from '../components/common/LoadingSpinner'
 
@@ -16,16 +16,32 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null)
   const [loading, setLoading] = useState(true)
-  const { auth } = useFirebase()
+  const { auth, googleProvider } = useFirebase()
 
-  // Sign up function
-  const signup = (email, password) => {
-    return createUserWithEmailAndPassword(auth, email, password)
+  // Sign up function with email verification
+  const signup = async (email, password) => {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password)
+    // Send verification email immediately after account creation
+    await sendEmailVerification(userCredential.user)
+    return userCredential
+  }
+
+  // Send email verification (can be called separately)
+  const sendVerificationEmail = () => {
+    if (currentUser && !currentUser.emailVerified) {
+      return sendEmailVerification(currentUser)
+    }
+    throw new Error('No user or user already verified')
   }
 
   // Login function
   const login = (email, password) => {
     return signInWithEmailAndPassword(auth, email, password)
+  }
+
+  // Google login function
+  const loginWithGoogle = () => {
+    return signInWithPopup(auth, googleProvider)
   }
 
   // Logout function
@@ -52,6 +68,8 @@ export const AuthProvider = ({ children }) => {
     loading,
     signup,
     login,
+    loginWithGoogle,
+    sendVerificationEmail,
     logout
   }
 
