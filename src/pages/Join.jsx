@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useFirebase } from '../contexts/FirebaseContext'
+import { useAuth } from '../contexts/AuthContext'
 import { getRandomGeekName } from '../utils/geekNames'
 import toast from 'react-hot-toast'
 
@@ -10,15 +11,28 @@ const Join = () => {
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
   const { api } = useFirebase()
+  const { currentUser } = useAuth()
   const [searchParams] = useSearchParams()
+  const codeInputRef = useRef(null)
 
-  // Autocompletar código si viene en la URL
+  // Autocompletar código si viene en la URL y nombre si el usuario está logueado
   useEffect(() => {
     const codeFromUrl = searchParams.get('code')
     if (codeFromUrl && codeFromUrl.length === 6) {
       setRoomCode(codeFromUrl.toUpperCase())
     }
-  }, [searchParams])
+    
+    // Si el usuario está logueado, autocompletar con su email
+    if (currentUser?.email) {
+      setParticipantName(currentUser.email)
+      // Enfocar el campo de código para que el usuario pueda escribir directamente
+      setTimeout(() => {
+        if (codeInputRef.current) {
+          codeInputRef.current.focus()
+        }
+      }, 100)
+    }
+  }, [searchParams, currentUser])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -107,7 +121,7 @@ const Join = () => {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="participantName" className="block text-sm font-medium text-gray-700 mb-2">
-                Tu nombre (opcional)
+                {currentUser ? 'Tu nombre' : 'Tu nombre (opcional)'}
               </label>
               <input
                 id="participantName"
@@ -118,10 +132,17 @@ const Join = () => {
                 className="input"
                 placeholder="Ej: María García"
                 maxLength={50}
+                readOnly={currentUser ? true : false}
               />
-              <p className="text-xs text-gray-500 mt-1">
-                Si no ingresas un nombre, te asignaremos uno automáticamente
-              </p>
+              {currentUser ? (
+                <p className="text-xs text-green-600 mt-1">
+                  ✓ Autocompletado con tu cuenta: {currentUser.email}
+                </p>
+              ) : (
+                <p className="text-xs text-gray-500 mt-1">
+                  Si no ingresas un nombre, te asignaremos uno automáticamente
+                </p>
+              )}
             </div>
 
             <div>
@@ -129,6 +150,7 @@ const Join = () => {
                 Código de la sala
               </label>
               <input
+                ref={codeInputRef}
                 id="roomCode"
                 name="roomCode"
                 type="text"
@@ -163,15 +185,27 @@ const Join = () => {
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
-              ¿Eres presentador?{' '}
-              <a
-                href="/login"
-                className="font-medium text-primary-600 hover:text-primary-500"
-              >
-                Inicia sesión para crear salas
-              </a>
-            </p>
+            {currentUser ? (
+              <p className="text-sm text-gray-600">
+                ¿Quieres gestionar tus propias salas?{' '}
+                <a
+                  href="/dashboard"
+                  className="font-medium text-primary-600 hover:text-primary-500"
+                >
+                  Ir al Dashboard
+                </a>
+              </p>
+            ) : (
+              <p className="text-sm text-gray-600">
+                ¿Eres presentador?{' '}
+                <a
+                  href="/login"
+                  className="font-medium text-primary-600 hover:text-primary-500"
+                >
+                  Inicia sesión para crear salas
+                </a>
+              </p>
+            )}
           </div>
 
           {/* Información adicional */}

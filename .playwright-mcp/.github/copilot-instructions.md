@@ -43,15 +43,18 @@ const handleSubmit = async (e) => {
 
 //Versionado
 Genera una numero de version con cada push a github y muestra la version en la interfaz de usuario
+Incrementar versiones
+npm run version:patch   # 2.1.0 → 2.1.1
+npm run version:minor   # 2.1.0 → 2.2.0  
+npm run version:major   # 2.1.0 → 3.0.0
+
+Crear release completo (versión + commit + tag)
+npm run release:patch
+npm run release:minor
+npm run release:major
 
 //Comentarios en Codigo
 Genera comentarios claros y concisos en el código para explicar la lógica y las decisiones de implementación.
-
-//Integración Continua
-Con cada cambio implementado en el código, se deben ejecutar pruebas automatizadas para validar la funcionalidad y estabilidad de la aplicación. Utiliza Playwright para realizar pruebas end-to-end, asegurando que los flujos principales funcionen correctamente antes de realizar cualquier despliegue.
-
-//Despliegue Continuo
-Completado el proceso de integración continua, sube el codigo a GitHub, esto hara que el codigo se despliegue automaticamente en Netlify.
 
 // Integración Continua  
 Cada vez que se realicen agreguen funcionalidades nuevas y se arreglen bugs en el código, deberán ejecutarse pruebas automatizadas para validar la funcionalidad y la estabilidad de la aplicación. Se recomienda utilizar **Playwright** para llevar a cabo pruebas end-to-end, garantizando que los flujos principales funcionen correctamente antes de proceder con cualquier despliegue.  

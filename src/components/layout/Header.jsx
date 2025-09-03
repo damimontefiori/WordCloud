@@ -68,6 +68,20 @@ const Header = () => {
               </Link>
             )}
 
+            {/* Unirse a sala - solo para usuarios logueados en desktop */}
+            {currentUser && (
+              <Link 
+                to="/join" 
+                className={`${
+                  isActive('/join') 
+                    ? 'text-primary-600 border-primary-600' 
+                    : 'text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300'
+                } whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors`}
+              >
+                Unirse a sala
+              </Link>
+            )}
+
             {/* Botón About - siempre visible */}
             <button
               onClick={() => setIsAboutModalOpen(true)}
