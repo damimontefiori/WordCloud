@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
-import { collection, query, where, getDocs, doc, updateDoc, arrayUnion, serverTimestamp } from 'firebase/firestore'
+import { collection, query, where, getDocs } from 'firebase/firestore'
 import { db } from '../services/firebase'
+import { useFirebase } from '../contexts/FirebaseContext'
 import { getRandomGeekName } from '../utils/geekNames'
 import useDeviceDetection from '../hooks/useDeviceDetection'
 import toast from 'react-hot-toast'
@@ -10,6 +11,7 @@ const MobileJoinPage = () => {
   const { roomCode } = useParams()
   const [searchParams] = useSearchParams()
   const deviceInfo = useDeviceDetection()
+  const { api } = useFirebase()
 
   const [room, setRoom] = useState(null)
   const [participant, setParticipant] = useState({ name: '', code: roomCode || '' })
@@ -85,23 +87,38 @@ const MobileJoinPage = () => {
       // Si no hay nombre, asignar uno automáticamente
       const finalName = participant.name.trim() || getRandomGeekName()
       
-      console.log('🚀 Uniéndose a sala:', room.id, 'con nombre:', finalName)
+      console.log('🚀 Uniéndose a sala:', room.code, 'con nombre:', finalName)
       
-      const roomRef = doc(db, 'rooms', room.id)
-      await updateDoc(roomRef, {
-        participants: arrayUnion({
-          name: finalName,
-          joinedAt: serverTimestamp(),
-          deviceType: deviceInfo.isMobile ? 'mobile' : deviceInfo.isTablet ? 'tablet' : 'desktop'
-        })
+      // Use the API to properly join the room (same as desktop Join component)
+      const result = await api.joinRoom({
+        roomCode: room.code,
+        participantName: finalName
       })
-
-      // Redirigir a la sala usando el código de la sala
-      window.location.href = `/room/${room.code}?participant=${encodeURIComponent(finalName)}`
+      
+      console.log('🎉 Successfully joined room:', result)
+      
+      // Save participant info to localStorage (required for Room component)
+      const participantInfo = {
+        id: result.data.participantId,
+        name: finalName,
+        roomCode: room.code,
+        roomId: result.data.roomId,
+        joinedAt: new Date().toISOString()
+      }
+      
+      localStorage.setItem('participant', JSON.stringify(participantInfo))
+      
+      console.log('💾 Participant info saved:', participantInfo)
+      
+      // Show success message
+      toast.success(`¡Te has unido como "${finalName}" a la sala ${room.code}!`)
+      
+      // Navigate to the room (using window.location for mobile compatibility)
+      window.location.href = `/room/${room.code}`
       
     } catch (error) {
       console.error('Error joining room:', error)
-      toast.error('Error al unirse a la sala')
+      toast.error(error.message || 'Error al unirse a la sala')
     } finally {
       setIsJoining(false)
     }
