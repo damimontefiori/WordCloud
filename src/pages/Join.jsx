@@ -1,6 +1,7 @@
-import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import React, { useState, useEffect } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useFirebase } from '../contexts/FirebaseContext'
+import { getRandomGeekName } from '../utils/geekNames'
 import toast from 'react-hot-toast'
 
 const Join = () => {
@@ -9,6 +10,15 @@ const Join = () => {
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
   const { api } = useFirebase()
+  const [searchParams] = useSearchParams()
+
+  // Autocompletar código si viene en la URL
+  useEffect(() => {
+    const codeFromUrl = searchParams.get('code')
+    if (codeFromUrl && codeFromUrl.length === 6) {
+      setRoomCode(codeFromUrl.toUpperCase())
+    }
+  }, [searchParams])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -21,16 +31,15 @@ const Join = () => {
       return toast.error('El código debe tener 6 caracteres')
     }
 
-    if (!participantName.trim()) {
-      return toast.error('Por favor ingresa tu nombre')
-    }
+    // Si no hay nombre, generar uno automáticamente
+    const finalName = participantName.trim() || getRandomGeekName()
 
     setLoading(true)
     try {
       // Try to join the room using the API (with Functions fallback to Firestore)
       const result = await api.joinRoom({
         roomCode: roomCode.toUpperCase(),
-        participantName: participantName.trim()
+        participantName: finalName
       })
       
       console.log('🎉 Successfully joined room:', result)
@@ -38,7 +47,7 @@ const Join = () => {
       // Save participant info to localStorage
       const participantInfo = {
         id: result.data.participantId,
-        name: participantName.trim(),
+        name: finalName,
         roomCode: roomCode.toUpperCase(),
         roomId: result.data.roomId,
         joinedAt: new Date().toISOString()
@@ -48,8 +57,12 @@ const Join = () => {
       
       console.log('💾 Participant info saved:', participantInfo)
       
-      // Show success message
-      toast.success(`¡Te has unido a la sala ${roomCode.toUpperCase()}!`)
+      // Show success message with the name used
+      if (!participantName.trim()) {
+        toast.success(`¡Te has unido como "${finalName}" a la sala ${roomCode.toUpperCase()}!`)
+      } else {
+        toast.success(`¡Te has unido a la sala ${roomCode.toUpperCase()}!`)
+      }
       
       // Navigate to the room
       navigate(`/room/${roomCode.toUpperCase()}`)
@@ -94,19 +107,21 @@ const Join = () => {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="participantName" className="block text-sm font-medium text-gray-700 mb-2">
-                Tu nombre
+                Tu nombre (opcional)
               </label>
               <input
                 id="participantName"
                 name="participantName"
                 type="text"
-                required
                 value={participantName}
                 onChange={(e) => setParticipantName(e.target.value)}
                 className="input"
-                placeholder="Escribe tu nombre"
+                placeholder="Ej: María García"
                 maxLength={50}
               />
+              <p className="text-xs text-gray-500 mt-1">
+                Si no ingresas un nombre, te asignaremos uno automáticamente
+              </p>
             </div>
 
             <div>
@@ -131,9 +146,9 @@ const Join = () => {
 
             <button
               type="submit"
-              disabled={loading || roomCode.length !== 6 || !participantName.trim()}
+              disabled={loading || roomCode.length !== 6}
               className={`w-full btn btn-primary py-3 ${
-                loading || roomCode.length !== 6 || !participantName.trim() ? 'opacity-50 cursor-not-allowed' : ''
+                loading || roomCode.length !== 6 ? 'opacity-50 cursor-not-allowed' : ''
               }`}
             >
               {loading ? (

@@ -167,6 +167,15 @@ const Dashboard = () => {
     setShowDeleteModal(true)
   }
 
+  const handleCopyLink = (roomCode) => {
+    const link = `${window.location.origin}/join?code=${roomCode}`
+    navigator.clipboard.writeText(link).then(() => {
+      toast.success('¡Link copiado al portapapeles!')
+    }).catch(() => {
+      toast.error('Error al copiar el link')
+    })
+  }
+
   const activeRooms = rooms.filter((r) => r.state === 'active').length
   const totalParticipants = Object.values(participantCounts).reduce((total, count) => total + count, 0)
   const totalRoomsWithParticipants = Object.values(participantCounts).filter(count => count > 0).length
@@ -279,6 +288,13 @@ const Dashboard = () => {
                     <div className="flex space-x-2">
                       <button className="btn btn-secondary btn-sm" onClick={() => navigate(`/room/${room.code}`)}>
                         Ver Sala
+                      </button>
+                      <button 
+                        className="btn btn-primary btn-sm" 
+                        onClick={() => handleCopyLink(room.code)}
+                        title="Copiar link para invitar participantes"
+                      >
+                        📋 Copiar Link
                       </button>
                       {room.state !== 'active' && (
                         <button className="btn btn-success btn-sm" onClick={() => handleStartRoom(room.id)} disabled={actingOn === room.id}>
