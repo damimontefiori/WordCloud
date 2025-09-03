@@ -7,14 +7,14 @@ const PersonalBadge = () => {
       role="note"
       aria-label="Marca personal en header"
     >
-      <span className="text-gray-300">
+      <span>
         Sitio desarrollado por Damian Montefiori — 
       </span>
       <a
         href="https://www.linkedin.com/in/damian-montefiori"
         target="_blank"
         rel="noopener noreferrer"
-        className="text-blue-300 hover:text-blue-200 underline transition-colors"
+        className="text-blue-600 hover:text-blue-800 underline transition-colors"
       >
         LinkedIn
       </a>
