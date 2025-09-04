@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import toast from 'react-hot-toast'
 import AboutModal from '../AboutModal'
 import PersonalBadge from '../PersonalBadge'
+import HamburgerMenu from './HamburgerMenu'
 
 const Header = () => {
   const { currentUser, logout } = useAuth()
@@ -42,7 +43,7 @@ const Header = () => {
             </div>
           </div>
 
-          {/* Navigation */}
+          {/* Desktop Navigation */}
           <nav className="hidden md:flex space-x-8">
             <Link 
               to="/" 
@@ -91,30 +92,49 @@ const Header = () => {
             </button>
           </nav>
 
-          {/* User menu */}
+          {/* Mobile Navigation & User Actions */}
           <div className="flex items-center space-x-2 sm:space-x-4 min-w-0">
-            {currentUser ? (
-              <div className="flex items-center space-x-2 sm:space-x-4 min-w-0">
-                <span className="text-xs sm:text-sm text-gray-700 truncate max-w-32 sm:max-w-none">
-                  {currentUser.email}
-                </span>
-                <button
-                  onClick={handleLogout}
-                  className="btn btn-secondary text-xs sm:text-sm whitespace-nowrap"
-                >
-                  Cerrar Sesión
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center space-x-2 sm:space-x-3">
-                <Link to="/join" className="text-xs sm:text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap">
-                  Unirse a sala
-                </Link>
-                <Link to="/login" className="btn btn-primary text-xs sm:text-sm whitespace-nowrap">
-                  Iniciar Sesión
-                </Link>
-              </div>
+            {/* Mobile Quick Join Button - solo para usuarios logueados */}
+            {currentUser && (
+              <Link
+                to="/join"
+                className="md:hidden btn btn-secondary text-xs px-3 py-2 whitespace-nowrap"
+                title="Unirse a sala"
+              >
+                👥 Unirse
+              </Link>
             )}
+
+            {/* Desktop User Menu */}
+            <div className="hidden md:flex items-center space-x-4 min-w-0">
+              {currentUser ? (
+                <div className="flex items-center space-x-2 sm:space-x-4 min-w-0">
+                  <span className="text-xs sm:text-sm text-gray-700 truncate max-w-32 sm:max-w-none">
+                    {currentUser.email}
+                  </span>
+                  <button
+                    onClick={handleLogout}
+                    className="btn btn-secondary text-xs sm:text-sm whitespace-nowrap"
+                  >
+                    Cerrar Sesión
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center space-x-2 sm:space-x-3">
+                  <Link to="/join" className="text-xs sm:text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap">
+                    Unirse a sala
+                  </Link>
+                  <Link to="/login" className="btn btn-primary text-xs sm:text-sm whitespace-nowrap">
+                    Iniciar Sesión
+                  </Link>
+                </div>
+              )}
+            </div>
+
+            {/* Mobile Hamburger Menu */}
+            <div className="md:hidden">
+              <HamburgerMenu />
+            </div>
           </div>
         </div>
       </div>
