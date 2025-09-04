@@ -3,6 +3,7 @@ import { useParams, useSearchParams } from 'react-router-dom'
 import { collection, query, where, getDocs } from 'firebase/firestore'
 import { db } from '../services/firebase'
 import { useFirebase } from '../contexts/FirebaseContext'
+import { useAuth } from '../contexts/AuthContext'
 import { getRandomGeekName } from '../utils/geekNames'
 import useDeviceDetection from '../hooks/useDeviceDetection'
 import toast from 'react-hot-toast'
@@ -12,6 +13,7 @@ const MobileJoinPage = () => {
   const [searchParams] = useSearchParams()
   const deviceInfo = useDeviceDetection()
   const { api } = useFirebase()
+  const { currentUser } = useAuth()
 
   const [room, setRoom] = useState(null)
   const [participant, setParticipant] = useState({ name: '', code: roomCode || '' })
@@ -26,6 +28,14 @@ const MobileJoinPage = () => {
       setParticipant(prev => ({ ...prev, code: codeFromUrl }))
     }
   }, [roomCode, searchParams])
+
+  // 🔧 Autocompletar nombre con email del usuario logueado
+  useEffect(() => {
+    if (currentUser?.email && !participant.name) {
+      console.log('📱 MobileJoin - Autocompletando nombre con:', currentUser.email)
+      setParticipant(prev => ({ ...prev, name: currentUser.email }))
+    }
+  }, [currentUser, participant.name])
 
   // Buscar sala automáticamente cuando hay código completo (6 dígitos)
   useEffect(() => {
@@ -210,19 +220,27 @@ const MobileJoinPage = () => {
             {/* Input de nombre (opcional) */}
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Tu Nombre (opcional)
+                {currentUser ? 'Tu nombre' : 'Tu Nombre (opcional)'}
               </label>
               <input
                 type="text"
                 value={participant.name}
                 onChange={handleNameChange}
-                placeholder="Si no ingresas, se asignará automáticamente"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                placeholder={currentUser ? currentUser.email : "Si no ingresas, se asignará automáticamente"}
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
+                  currentUser ? 'bg-green-50 border-green-300' : 'border-gray-300'
+                }`}
                 style={{ fontSize: '16px' }}
               />
-              <p className="mt-1 text-xs text-gray-500">
-                💡 Si lo dejas vacío, te asignaremos un nombre genial automáticamente
-              </p>
+              {currentUser ? (
+                <p className="mt-1 text-xs text-green-600">
+                  ✓ Autocompletado con tu cuenta: {currentUser.email}
+                </p>
+              ) : (
+                <p className="mt-1 text-xs text-gray-500">
+                  💡 Si lo dejas vacío, te asignaremos un nombre genial automáticamente
+                </p>
+              )}
             </div>
 
             {/* Botón de unirse */}

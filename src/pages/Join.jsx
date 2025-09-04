@@ -23,16 +23,26 @@ const Join = () => {
     }
     
     // Si el usuario está logueado, autocompletar con su email
-    if (currentUser?.email) {
+    if (currentUser?.email && !participantName) {
+      console.log('🔧 Autocompletando nombre con:', currentUser.email)
       setParticipantName(currentUser.email)
+      
       // Enfocar el campo de código para que el usuario pueda escribir directamente
       setTimeout(() => {
         if (codeInputRef.current) {
           codeInputRef.current.focus()
         }
-      }, 100)
+      }, 150) // Aumentamos el timeout para móvil
     }
-  }, [searchParams, currentUser])
+  }, [searchParams, currentUser, participantName])
+
+  // Efecto adicional para asegurar autocompletado en móvil
+  useEffect(() => {
+    if (currentUser?.email && !participantName) {
+      console.log('📱 Autocompletado móvil - Usuario detectado:', currentUser.email)
+      setParticipantName(currentUser.email)
+    }
+  }, [currentUser])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -129,10 +139,9 @@ const Join = () => {
                 type="text"
                 value={participantName}
                 onChange={(e) => setParticipantName(e.target.value)}
-                className="input"
-                placeholder="Ej: María García"
+                className={`input ${currentUser ? 'bg-green-50 border-green-300' : ''}`}
+                placeholder={currentUser ? currentUser.email : "Ej: María García"}
                 maxLength={50}
-                readOnly={currentUser ? true : false}
               />
               {currentUser ? (
                 <p className="text-xs text-green-600 mt-1">
