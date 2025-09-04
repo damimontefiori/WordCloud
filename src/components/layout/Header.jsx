@@ -94,17 +94,6 @@ const Header = () => {
 
           {/* Mobile Navigation & User Actions */}
           <div className="flex items-center space-x-2 sm:space-x-4 min-w-0">
-            {/* Mobile Quick Join Button - solo para usuarios logueados */}
-            {currentUser && (
-              <Link
-                to="/join"
-                className="md:hidden btn btn-secondary text-xs px-3 py-2 whitespace-nowrap"
-                title="Unirse a sala"
-              >
-                👥 Unirse
-              </Link>
-            )}
-
             {/* Desktop User Menu */}
             <div className="hidden md:flex items-center space-x-4 min-w-0">
               {currentUser ? (
@@ -131,8 +120,16 @@ const Header = () => {
               )}
             </div>
 
-            {/* Mobile Hamburger Menu */}
-            <div className="md:hidden">
+            {/* Mobile User Info & Hamburger Menu */}
+            <div className="md:hidden flex items-center space-x-3">
+              {/* Mobile User Email - solo si está logueado */}
+              {currentUser && (
+                <span className="text-xs text-gray-700 truncate max-w-24">
+                  {currentUser.email}
+                </span>
+              )}
+              
+              {/* Mobile Hamburger Menu */}
               <HamburgerMenu />
             </div>
           </div>
