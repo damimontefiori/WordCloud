@@ -35,7 +35,7 @@ const Home = () => {
                 <Link to="/login" className="btn btn-primary text-lg px-8 py-3">
                   Crear mi primera sala
                 </Link>
-                <Link to="/join" className="btn btn-secondary text-lg px-8 py-3">
+                <Link to="/join" className="btn btn-primary text-lg px-8 py-3">
                   Unirse a una sala
                 </Link>
               </>
