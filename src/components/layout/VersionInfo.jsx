@@ -14,13 +14,13 @@ const VersionInfo = () => {
            location.pathname.includes('/room/')
   }
 
-  // No mostrar en modo presentación
+  // No mostrar en modo presentación (el responsive se maneja con CSS: hidden md:block)
   if (isPresentationMode()) {
     return null
   }
 
   return (
-    <div className="fixed top-4 left-4 z-50">
+    <div className="fixed top-4 left-4 z-50 hidden md:block">
       <div 
         className="relative"
         onMouseEnter={() => setShowTooltip(true)}

@@ -2,10 +2,12 @@ import React, { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import AboutModal from '../AboutModal'
+import VersionModal from '../VersionModal'
 
 const HamburgerMenu = () => {
   const [isOpen, setIsOpen] = useState(false)
   const [isAboutModalOpen, setIsAboutModalOpen] = useState(false)
+  const [isVersionModalOpen, setIsVersionModalOpen] = useState(false)
   const { currentUser, logout } = useAuth()
   const location = useLocation()
 
@@ -24,6 +26,11 @@ const HamburgerMenu = () => {
 
   const handleAboutClick = () => {
     setIsAboutModalOpen(true)
+    closeMenu()
+  }
+
+  const handleVersionClick = () => {
+    setIsVersionModalOpen(true)
     closeMenu()
   }
 
@@ -119,6 +126,13 @@ const HamburgerMenu = () => {
                   <span className="mr-3">ℹ️</span>
                   Acerca de
                 </button>
+                <button
+                  onClick={handleVersionClick}
+                  className="flex items-center w-full px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+                >
+                  <span className="mr-3">🏷️</span>
+                  Información de Versión
+                </button>
               </div>
             </div>
 
@@ -199,6 +213,12 @@ const HamburgerMenu = () => {
       <AboutModal 
         isOpen={isAboutModalOpen} 
         onClose={() => setIsAboutModalOpen(false)} 
+      />
+
+      {/* Version Modal */}
+      <VersionModal 
+        isOpen={isVersionModalOpen} 
+        onClose={() => setIsVersionModalOpen(false)} 
       />
     </div>
   )

@@ -26,7 +26,7 @@ const Home = () => {
                 <Link to="/dashboard" className="btn btn-primary text-lg px-8 py-3">
                   Ir al Dashboard
                 </Link>
-                <Link to="/join" className="btn btn-secondary text-lg px-8 py-3">
+                <Link to="/join" className="btn bg-primary-500 hover:bg-primary-600 text-white border-primary-500 hover:border-primary-600 text-lg px-8 py-3">
                   Unirme a sala de otro presentador
                 </Link>
               </>
