@@ -7,6 +7,8 @@ import { useAuth } from '../contexts/AuthContext'
 import { useFirebase } from '../contexts/FirebaseContext'
 import { deleteRoom } from '../services/deleteRoom'
 import EmailVerificationBanner from '../components/auth/EmailVerificationBanner'
+import GuideModal from '../components/GuideModal'
+import ShareModal from '../components/ShareModal'
 
 const Dashboard = () => {
   const navigate = useNavigate()
@@ -29,6 +31,10 @@ const Dashboard = () => {
   // Estados para el modal de confirmación de eliminación
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [roomToDelete, setRoomToDelete] = useState(null)
+  
+  // Estados para los modales de guía y compartir
+  const [showGuideModal, setShowGuideModal] = useState(false)
+  const [showShareModal, setShowShareModal] = useState(false)
 
   useEffect(() => {
     loadUserRooms()
@@ -184,9 +190,24 @@ const Dashboard = () => {
     })
   }
 
-  const activeRooms = rooms.filter((r) => r.state === 'active').length
+  const activeRooms = rooms.filter((r) => r.state === 'active' || r.state === 'waiting').length
   const totalParticipants = Object.values(participantCounts).reduce((total, count) => total + count, 0)
   const totalRoomsWithParticipants = Object.values(participantCounts).filter(count => count > 0).length
+  
+  // Separar participantes por estado de sala
+  const activeAndWaitingRooms = rooms.filter(r => r.state === 'active' || r.state === 'waiting')
+  const finishedRooms = rooms.filter(r => r.state === 'ended' || r.state === 'finished')
+  
+  const participantsInActiveRooms = activeAndWaitingRooms.reduce((total, room) => {
+    return total + (participantCounts[room.id] || 0)
+  }, 0)
+  
+  const participantsInFinishedRooms = finishedRooms.reduce((total, room) => {
+    return total + (participantCounts[room.id] || 0)
+  }, 0)
+  
+  const activeRoomsCount = activeAndWaitingRooms.length
+  const finishedRoomsCount = finishedRooms.length
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -239,12 +260,21 @@ const Dashboard = () => {
                 </svg>
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">{totalParticipants}</h3>
-              <p className="text-gray-600 text-sm">
-                {totalParticipants > 0 
-                  ? `Participantes: ${totalParticipants}, en ${totalRoomsWithParticipants} salas`
-                  : 'Total Participantes'
-                }
-              </p>
+              <div className="space-y-1">
+                {participantsInActiveRooms > 0 && (
+                  <p className="text-green-600 text-sm font-medium">
+                    {participantsInActiveRooms} en {activeRoomsCount} salas activas
+                  </p>
+                )}
+                {participantsInFinishedRooms > 0 && (
+                  <p className="text-gray-600 text-sm">
+                    {participantsInFinishedRooms} en {finishedRoomsCount} salas finalizadas
+                  </p>
+                )}
+                {totalParticipants === 0 && (
+                  <p className="text-gray-600 text-sm">Total Participantes</p>
+                )}
+              </div>
             </div>
           </div>
 
@@ -256,7 +286,7 @@ const Dashboard = () => {
                 </svg>
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">{activeRooms}</h3>
-              <p className="text-gray-600 text-sm">Salas activas</p>
+              <p className="text-gray-600 text-sm">Salas activas (incluye en espera)</p>
             </div>
           </div>
         </div>
@@ -351,12 +381,22 @@ const Dashboard = () => {
           <div className="card bg-blue-50 border-blue-200">
             <h3 className="text-lg font-semibold text-blue-900 mb-2">¿Necesitas ayuda?</h3>
             <p className="text-blue-700 text-sm mb-4">Consulta nuestra guía rápida para crear tu primera sala exitosa.</p>
-            <button className="btn bg-blue-600 text-white hover:bg-blue-700">Ver Guía</button>
+            <button 
+              className="btn bg-blue-600 text-white hover:bg-blue-700"
+              onClick={() => setShowGuideModal(true)}
+            >
+              Ver Guía
+            </button>
           </div>
           <div className="card bg-green-50 border-green-200">
             <h3 className="text-lg font-semibold text-green-900 mb-2">¡Comparte la experiencia!</h3>
             <p className="text-green-700 text-sm mb-4">Invita a colegas a usar WordCloud App y mejoren sus presentaciones.</p>
-            <button className="btn bg-green-600 text-white hover:bg-green-700">Compartir</button>
+            <button 
+              className="btn bg-green-600 text-white hover:bg-green-700"
+              onClick={() => setShowShareModal(true)}
+            >
+              Compartir
+            </button>
           </div>
         </div>
       </div>
@@ -520,6 +560,17 @@ const Dashboard = () => {
           </div>
         </div>
       )}
+      
+      {/* Modales adicionales */}
+      <GuideModal 
+        isOpen={showGuideModal} 
+        onClose={() => setShowGuideModal(false)} 
+      />
+      
+      <ShareModal 
+        isOpen={showShareModal} 
+        onClose={() => setShowShareModal(false)} 
+      />
     </div>
   )
 }
