@@ -5,7 +5,7 @@ const ShareModal = ({ isOpen, onClose }) => {
 
   if (!isOpen) return null
 
-  const appUrl = 'https://wordcloudlive.netlify.app'
+  const appUrl = 'https://wordcloud.com.ar'
   const shareText = '🚀 ¡Descubre WordCloud App! Crea sesiones interactivas de lluvia de ideas en tiempo real. Perfecto para educación, presentaciones y dinámicas grupales. ¡Pruébalo gratis!'
   
   const whatsappMessage = encodeURIComponent(`${shareText} ${appUrl}`)

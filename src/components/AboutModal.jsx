@@ -47,7 +47,7 @@ const AboutModal = ({ isOpen, onClose }) => {
             id="about-modal-title"
             className="text-xl font-bold text-gray-900"
           >
-            About • WordCloudLive
+            About • WordCloud
           </h2>
           <button
             onClick={onClose}
