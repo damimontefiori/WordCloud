@@ -378,8 +378,8 @@ const Room = () => {
                   </button>
                 )}
                 
-                {/* Botón para iniciar la sala */}
-                {roomData.state === 'waiting' && (
+                {/* Botón para iniciar la sala - solo para administradores */}
+                {isAdmin && roomData.state === 'waiting' && (
                   <button
                     onClick={handleActivateRoom}
                     disabled={isActivating}
@@ -436,8 +436,8 @@ const Room = () => {
                 </button>
               )}
               
-              {/* Botón para iniciar la sala */}
-              {roomData.state === 'waiting' && (
+              {/* Botón para iniciar la sala - solo para administradores */}
+              {isAdmin && roomData.state === 'waiting' && (
                 <button
                   onClick={handleActivateRoom}
                   disabled={isActivating}
