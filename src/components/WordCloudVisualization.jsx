@@ -81,8 +81,9 @@ const WordCloudVisualization = ({ words, presentationMode = false }) => {
     let scaleFactor = 1
     if (totalEstArea > 0) {
       scaleFactor = Math.sqrt(availableArea / totalEstArea)
-      // Limitar: no inflar más de 3x ni reducir por debajo de 0.25x
-      scaleFactor = Math.min(scaleFactor, 3.0)
+      // En modo normal, limitar inflado para que pocas palabras no se desborden
+      const maxScale = presentationMode ? 3.0 : 1.5
+      scaleFactor = Math.min(scaleFactor, maxScale)
       scaleFactor = Math.max(scaleFactor, 0.25)
     }
 
@@ -90,7 +91,11 @@ const WordCloudVisualization = ({ words, presentationMode = false }) => {
     scaleFactor = Math.round(scaleFactor * 20) / 20
 
     const minFontSize = presentationMode ? 14 : 10
-    return initialSizes.map(size => Math.max(minFontSize, Math.round(size * scaleFactor)))
+    const maxFontSize = presentationMode ? 200 : 72
+    return initialSizes.map(size => {
+      const scaled = Math.max(minFontSize, Math.round(size * scaleFactor))
+      return Math.min(scaled, maxFontSize)
+    })
   }, [containerSize, presentationMode])
 
   // Actualizar palabras con animación cuando cambien las palabras o el tamaño del contenedor
