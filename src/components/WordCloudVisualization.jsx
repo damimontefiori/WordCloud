@@ -87,10 +87,10 @@ const WordCloudVisualization = ({ words, presentationMode = false }) => {
   }
 
   return (
-    <div className={`word-cloud-container relative overflow-hidden rounded-2xl min-h-[400px] ${
+    <div className={`word-cloud-container relative rounded-2xl ${
       presentationMode 
-        ? 'bg-transparent p-12 min-h-[600px]' 
-        : 'bg-gradient-to-br from-slate-50 to-blue-50 p-8'
+        ? 'bg-transparent p-4 sm:p-6 h-full max-h-full overflow-auto' 
+        : 'bg-gradient-to-br from-slate-50 to-blue-50 p-8 min-h-[400px] overflow-hidden'
     }`}>
       {/* Efecto de fondo sutil - solo en modo normal */}
       {!presentationMode && (
@@ -98,7 +98,7 @@ const WordCloudVisualization = ({ words, presentationMode = false }) => {
       )}
       
       <div className={`relative flex flex-wrap items-center justify-center gap-6 py-8 ${
-        presentationMode ? 'gap-x-16 gap-y-10 py-16' : ''
+        presentationMode ? 'gap-x-10 gap-y-6 py-4 content-center' : ''
       }`}>
         {animatedWords.map((wordData) => (
           <WordItem
@@ -157,7 +157,7 @@ const WordItem = ({ text, count, color, size, isNew, animationDelay, presentatio
           : 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
         animationDelay: `${animationDelay}ms`,
         // En modo presentación, desplazar verticalmente cada palabra para efecto disperso
-        marginTop: presentationMode ? `${offsetY}px` : undefined,
+        marginTop: presentationMode ? `${Math.round(offsetY * 0.5)}px` : undefined,
       }}
       title={`"${text}" - ${count} ${count === 1 ? 'voto' : 'votos'}`}
     >

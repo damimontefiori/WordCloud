@@ -296,7 +296,7 @@ const Room = () => {
       </div>
 
       {/* Área principal de la nube de palabras */}
-      <div className="flex-1 flex items-center justify-center p-4 sm:p-8">
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-8 overflow-hidden">
         {words.length === 0 ? (
           <div className="text-center max-w-md sm:max-w-2xl">
             <svg className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 text-white opacity-50 mx-auto mb-4 sm:mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -310,13 +310,11 @@ const Room = () => {
             </p>
           </div>
         ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <div className="text-center max-w-full w-full">
-              <WordCloudVisualization 
-                words={words} 
-                presentationMode={true}
-              />
-            </div>
+          <div className="w-full h-full">
+            <WordCloudVisualization 
+              words={words} 
+              presentationMode={true}
+            />
           </div>
         )}
       </div>
