@@ -50,10 +50,9 @@ const WordCloudVisualization = ({ words, presentationMode = false }) => {
     const maxCount = Math.max(...words.map(w => w.count), 1)
     
     const processedWords = words.map((wordData, index) => {
-      // Generar desplazamiento y rotación pseudo-aleatorios basados en el texto
+      // Generar desplazamiento vertical pseudo-aleatorio basado en el texto
       const hash = wordData.text.split('').reduce((a, b) => ((a << 5) - a) + b.charCodeAt(0), 0)
-      const offsetY = (Math.abs(hash) % 40) - 20       // -20px a +20px vertical
-      const rotation = (Math.abs(hash * 7) % 16) - 8    // -8° a +8°
+      const offsetY = (Math.abs(hash) % 40) - 20  // -20px a +20px vertical
 
       return {
         ...wordData,
@@ -62,8 +61,7 @@ const WordCloudVisualization = ({ words, presentationMode = false }) => {
         size: getWordSize(wordData.count, maxCount),
         animationDelay: index * 100,
         isNew: !animatedWords.find(w => w.text === wordData.text),
-        offsetY,
-        rotation
+        offsetY
       }
     })
 
@@ -113,7 +111,6 @@ const WordCloudVisualization = ({ words, presentationMode = false }) => {
             animationDelay={wordData.animationDelay}
             presentationMode={presentationMode}
             offsetY={wordData.offsetY}
-            rotation={wordData.rotation}
           />
         ))}
       </div>
@@ -130,7 +127,7 @@ const WordCloudVisualization = ({ words, presentationMode = false }) => {
   )
 }
 
-const WordItem = ({ text, count, color, size, isNew, animationDelay, presentationMode = false, offsetY = 0, rotation = 0 }) => {
+const WordItem = ({ text, count, color, size, isNew, animationDelay, presentationMode = false, offsetY = 0 }) => {
   const [isVisible, setIsVisible] = useState(false)
 
   useEffect(() => {
@@ -159,8 +156,8 @@ const WordItem = ({ text, count, color, size, isNew, animationDelay, presentatio
           ? `drop-shadow(0 4px 8px rgba(0,0,0,0.5)) drop-shadow(0 0 15px ${color})`
           : 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
         animationDelay: `${animationDelay}ms`,
-        // En modo presentación, desplazar y rotar cada palabra para efecto disperso
-        transform: presentationMode ? `translateY(${offsetY}px) rotate(${rotation}deg)` : undefined,
+        // En modo presentación, desplazar verticalmente cada palabra para efecto disperso
+        marginTop: presentationMode ? `${offsetY}px` : undefined,
       }}
       title={`"${text}" - ${count} ${count === 1 ? 'voto' : 'votos'}`}
     >
