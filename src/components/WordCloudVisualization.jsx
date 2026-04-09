@@ -32,10 +32,18 @@ const WordCloudVisualization = ({ words, presentationMode = false }) => {
   }
 
   // Función para calcular el tamaño de la fuente dinámicamente
-  const getWordSize = (count, maxCount) => {
-    // En modo presentación, usar tamaños más grandes
-    const minSize = presentationMode ? 24 : 16
-    const maxSize = presentationMode ? 120 : 64
+  // Escala los tamaños en modo presentación según el número de palabras para que siempre quepan
+  const getWordSize = (count, maxCount, totalWords = 1) => {
+    let minSize, maxSize
+    if (presentationMode) {
+      // Escalar tamaños hacia abajo cuando hay muchas palabras
+      const scale = totalWords <= 5 ? 1 : totalWords <= 15 ? 0.75 : totalWords <= 30 ? 0.55 : 0.4
+      minSize = Math.round(20 * scale)
+      maxSize = Math.round(120 * scale)
+    } else {
+      minSize = 16
+      maxSize = 64
+    }
     const ratio = count / Math.max(maxCount, 1)
     return Math.max(minSize, Math.min(maxSize, minSize + (ratio * (maxSize - minSize))))
   }
@@ -48,6 +56,7 @@ const WordCloudVisualization = ({ words, presentationMode = false }) => {
     }
 
     const maxCount = Math.max(...words.map(w => w.count), 1)
+    const totalWords = words.length
     
     const processedWords = words.map((wordData, index) => {
       // Generar desplazamiento vertical pseudo-aleatorio basado en el texto
@@ -58,7 +67,7 @@ const WordCloudVisualization = ({ words, presentationMode = false }) => {
         ...wordData,
         id: `${wordData.text}-${wordData.count}`,
         color: getWordColor(wordData.text),
-        size: getWordSize(wordData.count, maxCount),
+        size: getWordSize(wordData.count, maxCount, totalWords),
         animationDelay: index * 100,
         isNew: !animatedWords.find(w => w.text === wordData.text),
         offsetY
@@ -89,7 +98,7 @@ const WordCloudVisualization = ({ words, presentationMode = false }) => {
   return (
     <div className={`word-cloud-container relative rounded-2xl ${
       presentationMode 
-        ? 'bg-transparent p-4 sm:p-6 h-full max-h-full overflow-auto' 
+        ? 'bg-transparent p-4 sm:p-6 h-full max-h-full overflow-hidden' 
         : 'bg-gradient-to-br from-slate-50 to-blue-50 p-8 min-h-[400px] overflow-hidden'
     }`}>
       {/* Efecto de fondo sutil - solo en modo normal */}
@@ -98,7 +107,11 @@ const WordCloudVisualization = ({ words, presentationMode = false }) => {
       )}
       
       <div className={`relative flex flex-wrap items-center justify-center gap-6 py-8 ${
-        presentationMode ? 'gap-x-10 gap-y-6 py-4 content-center' : ''
+        presentationMode 
+          ? animatedWords.length > 20 
+            ? 'gap-x-4 gap-y-2 py-2 content-center' 
+            : 'gap-x-10 gap-y-6 py-4 content-center' 
+          : ''
       }`}>
         {animatedWords.map((wordData) => (
           <WordItem
@@ -156,8 +169,8 @@ const WordItem = ({ text, count, color, size, isNew, animationDelay, presentatio
           ? `drop-shadow(0 4px 8px rgba(0,0,0,0.5)) drop-shadow(0 0 15px ${color})`
           : 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
         animationDelay: `${animationDelay}ms`,
-        // En modo presentación, desplazar verticalmente cada palabra para efecto disperso
-        marginTop: presentationMode ? `${Math.round(offsetY * 0.5)}px` : undefined,
+        // En modo presentación, desplazar verticalmente (reducir scatter con muchas palabras)
+        marginTop: presentationMode ? `${Math.round(offsetY * (size > 40 ? 0.5 : 0.2))}px` : undefined,
       }}
       title={`"${text}" - ${count} ${count === 1 ? 'voto' : 'votos'}`}
     >
