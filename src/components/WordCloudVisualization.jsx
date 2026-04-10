@@ -111,7 +111,7 @@ const WordCloudVisualization = ({ words, presentationMode = false }) => {
     const processedWords = words.map((wordData, index) => {
       // Generar desplazamiento vertical pseudo-aleatorio basado en el texto
       const hash = wordData.text.split('').reduce((a, b) => ((a << 5) - a) + b.charCodeAt(0), 0)
-      const offsetY = (Math.abs(hash) % 30) - 15  // -15px a +15px vertical
+      const offsetY = (Math.abs(hash) % 50) - 25  // -25px a +25px vertical
 
       return {
         ...wordData,
@@ -150,7 +150,7 @@ const WordCloudVisualization = ({ words, presentationMode = false }) => {
     ? animatedWords.reduce((sum, w) => sum + w.size, 0) / animatedWords.length 
     : 40
   const dynamicGap = presentationMode 
-    ? Math.max(4, Math.round(avgSize * 0.15))
+    ? Math.max(8, Math.round(avgSize * 0.3))
     : undefined
 
   return (
@@ -233,7 +233,7 @@ const WordItem = ({ text, count, color, size, isNew, animationDelay, presentatio
           : 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
         animationDelay: `${animationDelay}ms`,
         // En modo presentación, desplazar verticalmente proporcional al tamaño
-        marginTop: presentationMode ? `${Math.round(offsetY * size * 0.005)}px` : undefined,
+        marginTop: presentationMode ? `${Math.round(offsetY * size * 0.012)}px` : undefined,
       }}
       title={`"${text}" - ${count} ${count === 1 ? 'voto' : 'votos'}`}
     >

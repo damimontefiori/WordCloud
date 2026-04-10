@@ -372,8 +372,8 @@ const Room = () => {
             <span className="sm:hidden">Toca el botón "Salir" para terminar la presentación</span>
           </div>
         </div>
-        {/* QR pequeño en esquina inferior derecha del modo presentación */}
-        <div className="absolute right-4 bottom-full mb-2 sm:right-6 sm:bottom-full sm:mb-3 opacity-80 hover:opacity-100 transition-opacity">
+        {/* QR pequeño en esquina inferior derecha del modo presentación — oculto en móvil */}
+        <div className="hidden sm:block absolute right-6 bottom-full mb-3 opacity-80 hover:opacity-100 transition-opacity">
           <div className="bg-white rounded-lg p-1.5 shadow-lg">
             <QRCodeSVG value={joinUrl} size={80} level="M" />
             <p className="text-[8px] text-gray-500 text-center mt-0.5 font-medium">{roomCode}</p>
