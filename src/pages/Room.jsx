@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { useFirebase } from '../contexts/FirebaseContext'
 import { db, auth } from '../services/firebase'
 import { doc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore'
 import toast from 'react-hot-toast'
+import { QRCodeSVG } from 'qrcode.react'
 import WordCloudVisualization from '../components/WordCloudVisualization'
 import { normalizeWord, isValidWord, processWord } from '../utils/wordNormalizer'
 
@@ -20,6 +21,8 @@ const Room = () => {
   const [hasVoted, setHasVoted] = useState(false)
   const [isActivating, setIsActivating] = useState(false)
   const [isPresentationMode, setIsPresentationMode] = useState(false)
+  const [showQR, setShowQR] = useState(false)
+  const qrRef = useRef(null)
   
   // Get participant data from localStorage (only for regular participants)
   const participant = JSON.parse(localStorage.getItem('participant') || 'null')
@@ -179,13 +182,52 @@ const Room = () => {
     }
   }
 
+  // URL de la sala para QR y copiar link
+  const joinUrl = `https://wordcloud.com.ar/join?code=${roomCode}`
+
   const handleCopyLink = () => {
-    const link = `${window.location.origin}/join?code=${roomCode}`
-    navigator.clipboard.writeText(link).then(() => {
+    navigator.clipboard.writeText(joinUrl).then(() => {
       toast.success('¡Link copiado al portapapeles!')
     }).catch(() => {
       toast.error('Error al copiar el link')
     })
+  }
+
+  // Copiar QR como imagen PNG al portapapeles
+  const handleCopyQR = async () => {
+    try {
+      const svgEl = qrRef.current?.querySelector('svg')
+      if (!svgEl) return
+      const svgData = new XMLSerializer().serializeToString(svgEl)
+      const canvas = document.createElement('canvas')
+      canvas.width = 512
+      canvas.height = 512
+      const ctx = canvas.getContext('2d')
+      const img = new Image()
+      img.onload = async () => {
+        ctx.fillStyle = 'white'
+        ctx.fillRect(0, 0, 512, 512)
+        ctx.drawImage(img, 0, 0, 512, 512)
+        canvas.toBlob(async (blob) => {
+          try {
+            await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
+            toast.success('¡QR copiado como imagen!')
+          } catch {
+            // Fallback: descargar como archivo
+            const url = URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = url
+            a.download = `wordcloud-qr-${roomCode}.png`
+            a.click()
+            URL.revokeObjectURL(url)
+            toast.success('¡QR descargado!')
+          }
+        }, 'image/png')
+      }
+      img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)))
+    } catch {
+      toast.error('Error al copiar el QR')
+    }
   }
 
   // Funciones para modo presentación
@@ -319,8 +361,8 @@ const Room = () => {
         )}
       </div>
 
-      {/* Footer con instrucciones */}
-      <div className="bg-black bg-opacity-30 backdrop-blur-sm p-3 sm:p-4">
+      {/* Footer con instrucciones + QR en esquina */}
+      <div className="bg-black bg-opacity-30 backdrop-blur-sm p-3 sm:p-4 relative">
         <div className="flex justify-center items-center text-white">
           <div className="flex items-center text-sm sm:text-base lg:text-lg">
             <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -328,6 +370,13 @@ const Room = () => {
             </svg>
             <span className="hidden sm:inline">Presiona ESC para salir del modo presentación</span>
             <span className="sm:hidden">Toca el botón "Salir" para terminar la presentación</span>
+          </div>
+        </div>
+        {/* QR pequeño en esquina inferior derecha del modo presentación */}
+        <div className="absolute right-4 bottom-full mb-2 sm:right-6 sm:bottom-full sm:mb-3 opacity-80 hover:opacity-100 transition-opacity">
+          <div className="bg-white rounded-lg p-1.5 shadow-lg">
+            <QRCodeSVG value={joinUrl} size={80} level="M" />
+            <p className="text-[8px] text-gray-500 text-center mt-0.5 font-medium">{roomCode}</p>
           </div>
         </div>
       </div>
@@ -415,7 +464,30 @@ const Room = () => {
                     Modo Presentación
                   </button>
                 )}
+                {/* Botón QR - solo para administradores */}
+                {isAdmin && (
+                  <button
+                    onClick={() => setShowQR(!showQR)}
+                    className="inline-flex items-center px-3 py-2 text-white text-xs font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700"
+                  >
+                    <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                    </svg>
+                    QR
+                  </button>
+                )}
               </div>
+
+              {/* Panel QR desplegable para móvil */}
+              {isAdmin && showQR && (
+                <div className="mt-3 bg-white rounded-xl shadow-lg p-4 flex flex-col items-center gap-3 lg:hidden" ref={qrRef}>
+                  <QRCodeSVG value={joinUrl} size={160} level="M" includeMargin />
+                  <p className="text-xs text-gray-500 text-center">Escaneá para unirte — Código: <span className="font-bold">{roomCode}</span></p>
+                  <button onClick={handleCopyQR} className="text-xs text-indigo-600 hover:text-indigo-800 font-medium">
+                    Copiar QR como imagen
+                  </button>
+                </div>
+              )}
             </div>
             
             {/* Botones de acción - En desktop van a la derecha */}
@@ -461,6 +533,30 @@ const Room = () => {
                 </button>
               )}
               
+              {/* Botón QR - solo para administradores */}
+              {isAdmin && (
+                <div className="relative">
+                  <button
+                    onClick={() => setShowQR(!showQR)}
+                    className="inline-flex items-center px-4 py-2 text-white text-sm font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700"
+                  >
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                    </svg>
+                    QR
+                  </button>
+                  {/* Panel QR desplegable para desktop */}
+                  {showQR && (
+                    <div className="absolute right-0 top-full mt-2 bg-white rounded-xl shadow-2xl p-5 flex flex-col items-center gap-3 z-50" ref={qrRef}>
+                      <QRCodeSVG value={joinUrl} size={200} level="M" includeMargin />
+                      <p className="text-sm text-gray-500 text-center">Escaneá para unirte<br/>Código: <span className="font-bold text-gray-700">{roomCode}</span></p>
+                      <button onClick={handleCopyQR} className="text-sm text-indigo-600 hover:text-indigo-800 font-medium transition-colors">
+                        Copiar QR como imagen
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
               {/* Botón de modo presentación - solo para administradores */}
               {isAdmin && (
                 <button
