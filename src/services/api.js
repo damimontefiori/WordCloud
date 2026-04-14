@@ -281,6 +281,23 @@ export const apiService = {
     return { ok: true };
   },
 
+  // Remover participante de una sala (kick) y borrar su voto si existe
+  async kickParticipant(participantId, roomId) {
+    if (!auth.currentUser) throw new Error('No autenticado');
+    // Borrar voto del participante en esta sala
+    const voteQuery = query(
+      collection(db, 'words'),
+      where('roomId', '==', roomId),
+      where('participantId', '==', participantId)
+    );
+    const voteSnap = await getDocs(voteQuery);
+    const deleteVotes = voteSnap.docs.map(d => firestoreDeleteDoc(d.ref));
+    await Promise.all(deleteVotes);
+    // Borrar registro de participante
+    await firestoreDeleteDoc(doc(db, 'participants', participantId));
+    return { ok: true };
+  },
+
   // Nueva ronda de Planning Poker — borra votos anteriores e incrementa ronda
   async newPokerRound(roomId) {
     if (!auth.currentUser) throw new Error('No autenticado');

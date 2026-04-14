@@ -313,6 +313,31 @@ const Room = () => {
     }
   }
 
+  // Kick participante (solo admin, solo poker)
+  const handleKickParticipant = async (participantId, participantName) => {
+    if (!roomData?.id || !isAdmin) return
+    try {
+      await api.kickParticipant(participantId, roomData.id)
+      toast.success(`${participantName} fue removido de la sala`)
+    } catch (error) {
+      toast.error('Error al remover participante')
+    }
+  }
+
+  // Cambiar voto (solo poker, antes de revelar)
+  const handleChangeVote = () => {
+    setPokerVote(null)
+    localStorage.removeItem(`poker_vote_${roomCode}`)
+    localStorage.removeItem(`voted_${roomCode}`)
+    setHasVoted(false)
+  }
+
+  // Detectar si todos votaron (participantes + admin si votó)
+  const allVoted = isPokerRoom && participants.length > 0 && (() => {
+    const totalExpected = participants.length + (isAdmin ? 1 : 0)
+    return rawWords.length >= totalExpected
+  })()
+
   // Funciones para modo presentación
   const enterPresentationMode = () => {
     setIsPresentationMode(true)
@@ -437,10 +462,12 @@ const Room = () => {
                   className={`px-6 py-3 rounded-xl text-lg font-bold transition-all ${
                     rawWords.length === 0
                       ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                      : 'bg-amber-500 hover:bg-amber-600 text-white shadow-lg hover:shadow-xl'
+                      : allVoted 
+                        ? 'bg-green-500 hover:bg-green-600 text-white shadow-lg hover:shadow-xl animate-pulse'
+                        : 'bg-amber-500 hover:bg-amber-600 text-white shadow-lg hover:shadow-xl'
                   }`}
                 >
-                  👁️ Revelar Votos ({rawWords.length})
+                  {allVoted ? '✅' : '👁️'} Revelar Votos ({rawWords.length})
                 </button>
               ) : (
                 <button
@@ -737,9 +764,9 @@ const Room = () => {
                       <button
                         onClick={handleRevealVotes}
                         disabled={rawWords.length === 0}
-                        className={`btn btn-sm text-white ${rawWords.length === 0 ? 'bg-gray-400 cursor-not-allowed' : 'bg-amber-500 hover:bg-amber-600'}`}
+                        className={`btn btn-sm text-white ${rawWords.length === 0 ? 'bg-gray-400 cursor-not-allowed' : allVoted ? 'bg-green-500 hover:bg-green-600 animate-pulse' : 'bg-amber-500 hover:bg-amber-600'}`}
                       >
-                        👁️ Revelar ({rawWords.length})
+                        {allVoted ? '✅' : '👁️'} Revelar ({rawWords.length})
                       </button>
                     ) : (
                       <button
@@ -807,13 +834,14 @@ const Room = () => {
             )}
             
             {/* Poker Cards para admin (solo en poker rooms) */}
-            {isAdmin && isPokerRoom && roomData.state === 'active' && (
+            {isAdmin && isPokerRoom && roomData.state === 'active' && !votesRevealed && (
               <div className="card">
                 <PlanningPokerCards
                   scale={pokerScale}
                   onVote={handlePokerVote}
-                  disabled={!!pokerVote}
+                  disabled={votesRevealed}
                   selectedValue={pokerVote}
+                  onChangeVote={pokerVote && !votesRevealed ? handleChangeVote : null}
                 />
               </div>
             )}
@@ -822,14 +850,17 @@ const Room = () => {
             {!isAdmin && hasJoined && roomData.state === 'active' && (
               isPokerRoom ? (
                 // Tarjetas de Planning Poker
-                <div className="card">
-                  <PlanningPokerCards
-                    scale={pokerScale}
-                    onVote={handlePokerVote}
-                    disabled={!!pokerVote}
-                    selectedValue={pokerVote}
-                  />
-                </div>
+                !votesRevealed && (
+                  <div className="card">
+                    <PlanningPokerCards
+                      scale={pokerScale}
+                      onVote={handlePokerVote}
+                      disabled={votesRevealed}
+                      selectedValue={pokerVote}
+                      onChangeVote={pokerVote && !votesRevealed ? handleChangeVote : null}
+                    />
+                  </div>
+                )
               ) : (
                 // Input de palabras para Word Cloud (solo si no ha votado)
                 !hasVoted && (
@@ -930,19 +961,41 @@ const Room = () => {
             <div className="card">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
                 Participantes ({participantCount})
+                {isPokerRoom && allVoted && !votesRevealed && (
+                  <span className="ml-2 text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                    ✅ Todos votaron
+                  </span>
+                )}
               </h3>
               {participants.length === 0 ? (
                 <p className="text-gray-500 text-sm">No hay participantes aún</p>
               ) : (
                 <div className="space-y-2">
-                  {participants.map((participantItem) => (
-                    <div key={participantItem.id} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
-                      <span className="text-gray-900">{participantItem.name}</span>
-                      <span className="text-xs text-gray-500">
-                        {participantItem.hasVoted ? '✓ Votado' : 'Esperando...'}
-                      </span>
-                    </div>
-                  ))}
+                  {participants.map((participantItem) => {
+                    // En poker, verificar si este participante ya votó (tiene doc en rawWords)
+                    const hasParticipantVoted = isPokerRoom 
+                      ? rawWords.some(w => w.participantId === participantItem.id)
+                      : participantItem.hasVoted
+                    return (
+                      <div key={participantItem.id} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
+                        <span className="text-gray-900">{participantItem.name}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-gray-500">
+                            {hasParticipantVoted ? '✓ Votado' : 'Esperando...'}
+                          </span>
+                          {isAdmin && isPokerRoom && (
+                            <button
+                              onClick={() => handleKickParticipant(participantItem.id, participantItem.name)}
+                              className="text-xs text-red-400 hover:text-red-600 transition-colors"
+                              title={`Remover a ${participantItem.name}`}
+                            >
+                              ✖
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })}
                 </div>
               )}
             </div>
