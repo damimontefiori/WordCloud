@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 
 // Componente de tarjetas de votación para Planning Poker
 // Muestra las cartas según la escala seleccionada y permite al participante votar
-const PlanningPokerCards = ({ scale, onVote, disabled, selectedValue, onChangeVote }) => {
+const PlanningPokerCards = ({ scale, onVote, disabled, selectedValue }) => {
   const [hoveredCard, setHoveredCard] = useState(null)
 
   if (!scale || !scale.values) return null
@@ -53,17 +53,12 @@ const PlanningPokerCards = ({ scale, onVote, disabled, selectedValue, onChangeVo
       </div>
       {selectedValue && !disabled && (
         <div className="text-center mt-3">
-          <p className="text-sm text-green-600 font-medium mb-1">
+          <p className="text-sm text-green-600 font-medium">
             ✓ Votaste: {selectedValue}
           </p>
-          {onChangeVote && (
-            <button
-              onClick={onChangeVote}
-              className="text-xs text-primary-600 hover:text-primary-800 underline transition-colors"
-            >
-              Cambiar voto
-            </button>
-          )}
+          <p className="text-xs text-gray-400 mt-1">
+            Podés cambiar tu voto tocando otra carta hasta que se revelen
+          </p>
         </div>
       )}
       {disabled && selectedValue && (

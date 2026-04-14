@@ -238,6 +238,15 @@ export const apiService = {
     const roomData = roomDoc.data();
     if (roomData.state !== 'active') throw new Error('La sala no está activa');
 
+    // Verificar que el participante existe en la sala (para evitar votos de kickeados)
+    // El admin (createdBy) no tiene doc en participants, se permite directamente
+    if (participantId !== roomData.createdBy) {
+      const participantSnap = await getDoc(doc(db, 'participants', participantId));
+      if (!participantSnap.exists()) {
+        throw new Error('Ya no eres participante de esta sala');
+      }
+    }
+
     // Texto único con participantId para evitar deduplicación entre participantes
     const uniqueText = `${vote}_${participantId}`;
 

@@ -324,14 +324,6 @@ const Room = () => {
     }
   }
 
-  // Cambiar voto (solo poker, antes de revelar)
-  const handleChangeVote = () => {
-    setPokerVote(null)
-    localStorage.removeItem(`poker_vote_${roomCode}`)
-    localStorage.removeItem(`voted_${roomCode}`)
-    setHasVoted(false)
-  }
-
   // Detectar si todos votaron (participantes + admin si votó)
   const allVoted = isPokerRoom && participants.length > 0 && (() => {
     const totalExpected = participants.length + (isAdmin ? 1 : 0)
@@ -841,7 +833,6 @@ const Room = () => {
                   onVote={handlePokerVote}
                   disabled={votesRevealed}
                   selectedValue={pokerVote}
-                  onChangeVote={pokerVote && !votesRevealed ? handleChangeVote : null}
                 />
               </div>
             )}
@@ -857,7 +848,6 @@ const Room = () => {
                       onVote={handlePokerVote}
                       disabled={votesRevealed}
                       selectedValue={pokerVote}
-                      onChangeVote={pokerVote && !votesRevealed ? handleChangeVote : null}
                     />
                   </div>
                 )
