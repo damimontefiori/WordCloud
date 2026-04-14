@@ -266,13 +266,15 @@ const Room = () => {
   }, [roomCode, currentRound])
 
   const handlePokerVote = async (value) => {
-    if (!hasJoined || !participant) return
+    // Admin vota con su UID, participante con su ID
+    const voterId = isAdmin ? currentUser.uid : participant?.id
+    if (!voterId) return
     setPokerVote(value)
     
     try {
       await api.submitPokerVote({
         vote: value,
-        participantId: participant.id,
+        participantId: voterId,
         roomCode
       })
       // Guardar voto en localStorage con ronda
@@ -456,6 +458,8 @@ const Room = () => {
                 participants={participants}
                 revealed={votesRevealed}
                 scale={pokerScale}
+                adminUid={currentUser?.uid}
+                adminEmail={currentUser?.email}
               />
             </div>
           </div>
@@ -756,6 +760,8 @@ const Room = () => {
                   participants={participants}
                   revealed={votesRevealed}
                   scale={pokerScale}
+                  adminUid={currentUser?.uid}
+                  adminEmail={currentUser?.email}
                 />
               ) : (
                 // Mostrar word cloud
@@ -800,7 +806,19 @@ const Room = () => {
               </div>
             )}
             
-            {/* Word Submission / Poker Cards — Only for non-admin participants */}
+            {/* Poker Cards para admin (solo en poker rooms) */}
+            {isAdmin && isPokerRoom && roomData.state === 'active' && (
+              <div className="card">
+                <PlanningPokerCards
+                  scale={pokerScale}
+                  onVote={handlePokerVote}
+                  disabled={!!pokerVote}
+                  selectedValue={pokerVote}
+                />
+              </div>
+            )}
+
+            {/* Word Submission / Poker Cards — para participantes */}
             {!isAdmin && hasJoined && roomData.state === 'active' && (
               isPokerRoom ? (
                 // Tarjetas de Planning Poker

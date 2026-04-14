@@ -2,7 +2,7 @@ import React from 'react'
 
 // Componente de resultados para Planning Poker
 // Muestra votos individuales, promedio, valor redondeado a escala y consenso tras revelar
-const PlanningPokerResults = ({ votes, participants, revealed, scale }) => {
+const PlanningPokerResults = ({ votes, participants, revealed, scale, adminUid, adminEmail }) => {
   if (!votes || votes.length === 0) {
     return (
       <div className="text-center py-8">
@@ -103,7 +103,8 @@ const PlanningPokerResults = ({ votes, participants, revealed, scale }) => {
       {/* Votos individuales */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {votes.map((vote, i) => {
-          const participantName = participantMap[vote.participantId] || 'Participante'
+          const participantName = participantMap[vote.participantId]
+            || (vote.participantId === adminUid ? (adminEmail || 'Admin') : 'Participante')
           const displayValue = vote.originalText || vote.text
           return (
             <div
