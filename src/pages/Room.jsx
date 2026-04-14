@@ -455,6 +455,7 @@ const Room = () => {
                 votes={rawWords}
                 participants={participants}
                 revealed={votesRevealed}
+                scale={pokerScale}
               />
             </div>
           </div>
@@ -754,6 +755,7 @@ const Room = () => {
                   votes={rawWords}
                   participants={participants}
                   revealed={votesRevealed}
+                  scale={pokerScale}
                 />
               ) : (
                 // Mostrar word cloud

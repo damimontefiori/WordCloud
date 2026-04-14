@@ -1,8 +1,8 @@
 import React from 'react'
 
 // Componente de resultados para Planning Poker
-// Muestra votos individuales, promedio y consenso tras revelar
-const PlanningPokerResults = ({ votes, participants, revealed }) => {
+// Muestra votos individuales, promedio, valor redondeado a escala y consenso tras revelar
+const PlanningPokerResults = ({ votes, participants, revealed, scale }) => {
   if (!votes || votes.length === 0) {
     return (
       <div className="text-center py-8">
@@ -23,8 +23,21 @@ const PlanningPokerResults = ({ votes, participants, revealed }) => {
     .filter(n => !isNaN(n))
 
   const average = numericVotes.length > 0
-    ? (numericVotes.reduce((a, b) => a + b, 0) / numericVotes.length).toFixed(1)
+    ? (numericVotes.reduce((a, b) => a + b, 0) / numericVotes.length)
     : null
+
+  // Redondear hacia arriba al valor numérico más cercano de la escala
+  const roundedToScale = (() => {
+    if (average === null || !scale?.values) return null
+    const scaleNumbers = scale.values
+      .map(v => parseFloat(v))
+      .filter(n => !isNaN(n))
+      .sort((a, b) => a - b)
+    if (scaleNumbers.length === 0) return null
+    // Buscar el primer valor de la escala >= promedio (redondeo hacia arriba)
+    const upper = scaleNumbers.find(v => v >= average)
+    return upper !== undefined ? upper : scaleNumbers[scaleNumbers.length - 1]
+  })()
 
   const allSame = numericVotes.length > 0 && numericVotes.every(v => v === numericVotes[0])
   const hasConsensus = votes.length >= 2 && allSame
@@ -62,9 +75,17 @@ const PlanningPokerResults = ({ votes, participants, revealed }) => {
       {/* Promedio y consenso */}
       <div className="text-center">
         {average !== null && (
-          <div className="mb-2">
-            <span className="text-5xl font-bold text-primary-600">{average}</span>
-            <p className="text-sm text-gray-500 mt-1">Promedio</p>
+          <div className="mb-3 flex items-center justify-center gap-6">
+            <div>
+              <span className="text-4xl font-bold text-gray-500">{average.toFixed(1)}</span>
+              <p className="text-sm text-gray-500 mt-1">Promedio</p>
+            </div>
+            {roundedToScale !== null && (
+              <div>
+                <span className="text-5xl font-bold text-primary-600">{roundedToScale}</span>
+                <p className="text-sm text-gray-500 mt-1">Estimación</p>
+              </div>
+            )}
           </div>
         )}
         {hasConsensus && (
