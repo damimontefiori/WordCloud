@@ -36,6 +36,24 @@ export const COLLECTIONS = {
   USERS: 'users'
 }
 
+// Room types
+export const ROOM_TYPES = {
+  WORDCLOUD: 'wordcloud',
+  PLANNING_POKER: 'planning-poker'
+}
+
+// Escalas de estimación para Planning Poker
+export const ESTIMATION_SCALES = {
+  FIBONACCI: {
+    name: 'Fibonacci',
+    values: ['0', '1', '2', '3', '5', '8', '13', '21', '?']
+  },
+  TSHIRT: {
+    name: 'Tallas',
+    values: ['XS', 'S', 'M', 'L', 'XL', 'XXL', '?']
+  }
+}
+
 // Room states
 export const ROOM_STATES = {
   WAITING: 'waiting',

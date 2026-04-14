@@ -6,7 +6,10 @@ import { doc, updateDoc, collection, query, where, getDocs } from 'firebase/fire
 import toast from 'react-hot-toast'
 import { QRCodeSVG } from 'qrcode.react'
 import WordCloudVisualization from '../components/WordCloudVisualization'
+import PlanningPokerCards from '../components/PlanningPokerCards'
+import PlanningPokerResults from '../components/PlanningPokerResults'
 import { normalizeWord, isValidWord, processWord } from '../utils/wordNormalizer'
+import { ESTIMATION_SCALES } from '../utils/constants'
 
 const Room = () => {
   const { roomCode } = useParams()
@@ -22,6 +25,8 @@ const Room = () => {
   const [isActivating, setIsActivating] = useState(false)
   const [isPresentationMode, setIsPresentationMode] = useState(false)
   const [showQR, setShowQR] = useState(false)
+  const [pokerVote, setPokerVote] = useState(null)
+  const [rawWords, setRawWords] = useState([]) // Datos crudos de words para poker
   const qrRef = useRef(null)
   
   // Get participant data from localStorage (only for regular participants)
@@ -86,11 +91,14 @@ const Room = () => {
       
       console.log('📋 Words list:', wordsList)
       
+      // Guardar datos crudos para Planning Poker
+      setRawWords(wordsList)
+      
       // Transform for word cloud display
       const wordCloudData = wordsList.map(wordItem => ({
-        text: wordItem.text,
+        text: wordItem.originalText || wordItem.text,
         count: wordItem.count,
-        size: Math.min(12 + (wordItem.count * 3), 36) // Size based on count
+        size: Math.min(12 + (wordItem.count * 3), 36)
       }))
       
       console.log('☁️ Word cloud data:', wordCloudData)
@@ -230,6 +238,79 @@ const Room = () => {
     }
   }
 
+  // --- Planning Poker handlers ---
+  const isPokerRoom = roomData?.roomType === 'planning-poker'
+  const pokerScale = roomData?.estimationScale
+    ? ESTIMATION_SCALES[roomData.estimationScale]
+    : ESTIMATION_SCALES.FIBONACCI
+  const votesRevealed = roomData?.revealVotes === true
+  const currentRound = roomData?.currentRound || 1
+
+  // Resetear voto local cuando cambia la ronda
+  useEffect(() => {
+    setPokerVote(null)
+    localStorage.removeItem(`poker_vote_${roomCode}`)
+  }, [currentRound, roomCode])
+
+  // Recuperar voto guardado del localStorage
+  useEffect(() => {
+    const savedVote = localStorage.getItem(`poker_vote_${roomCode}`)
+    if (savedVote) {
+      try {
+        const parsed = JSON.parse(savedVote)
+        if (parsed.round === currentRound) {
+          setPokerVote(parsed.value)
+        }
+      } catch { /* ignorar */ }
+    }
+  }, [roomCode, currentRound])
+
+  const handlePokerVote = async (value) => {
+    if (!hasJoined || !participant) return
+    setPokerVote(value)
+    
+    try {
+      await api.submitPokerVote({
+        vote: value,
+        participantId: participant.id,
+        roomCode
+      })
+      // Guardar voto en localStorage con ronda
+      localStorage.setItem(`poker_vote_${roomCode}`, JSON.stringify({ value, round: currentRound }))
+      localStorage.setItem(`voted_${roomCode}`, 'true')
+      setHasVoted(true)
+      toast.success(`¡Voto "${value}" enviado!`)
+    } catch (error) {
+      console.error('Error submitting poker vote:', error)
+      toast.error(error.message || 'Error al enviar voto')
+      setPokerVote(null)
+    }
+  }
+
+  const handleRevealVotes = async () => {
+    if (!roomData?.id) return
+    try {
+      await api.revealPokerVotes(roomData.id)
+      toast.success('¡Votos revelados!')
+    } catch (error) {
+      toast.error('Error al revelar votos')
+    }
+  }
+
+  const handleNewRound = async () => {
+    if (!roomData?.id) return
+    try {
+      await api.newPokerRound(roomData.id)
+      setPokerVote(null)
+      localStorage.removeItem(`poker_vote_${roomCode}`)
+      localStorage.removeItem(`voted_${roomCode}`)
+      setHasVoted(false)
+      toast.success(`¡Nueva ronda ${currentRound + 1}!`)
+    } catch (error) {
+      toast.error('Error al iniciar nueva ronda')
+    }
+  }
+
   // Funciones para modo presentación
   const enterPresentationMode = () => {
     setIsPresentationMode(true)
@@ -312,7 +393,10 @@ const Room = () => {
             <div className="flex flex-wrap items-center mt-2 text-sm sm:text-base lg:text-lg text-blue-200 gap-x-3 sm:gap-x-6 gap-y-1">
               <span>Código: {roomData.code}</span>
               <span>Participantes: {participantCount}</span>
-              <span>Palabras: {words.length}</span>
+              {isPokerRoom 
+                ? <span>Ronda: {currentRound} · Votos: {rawWords.length}</span>
+                : <span>Palabras: {words.length}</span>
+              }
               <span className={`px-2 py-1 rounded-full text-xs sm:text-sm ${
                 roomData.state === 'active' ? 'bg-green-500 text-white' :
                 roomData.state === 'waiting' ? 'bg-yellow-500 text-black' :
@@ -337,27 +421,65 @@ const Room = () => {
         </div>
       </div>
 
-      {/* Área principal de la nube de palabras */}
+      {/* Área principal — Word Cloud o Poker */}
       <div className="flex-1 flex items-center justify-center p-4 sm:p-8 overflow-hidden">
-        {words.length === 0 ? (
-          <div className="text-center max-w-md sm:max-w-2xl">
-            <svg className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 text-white opacity-50 mx-auto mb-4 sm:mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
-            </svg>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-3 sm:mb-4">
-              Esperando las primeras palabras...
-            </h2>
-            <p className="text-base sm:text-lg lg:text-xl text-blue-200">
-              {roomData.state === 'waiting' ? 'Inicia la sala para comenzar a recibir palabras' : 'Los participantes pueden enviar sus palabras ahora'}
-            </p>
+        {isPokerRoom ? (
+          // Modo presentación para Planning Poker
+          <div className="w-full max-w-4xl mx-auto">
+            {/* Controles admin en presentación */}
+            <div className="flex justify-center gap-4 mb-6">
+              {!votesRevealed ? (
+                <button
+                  onClick={handleRevealVotes}
+                  disabled={rawWords.length === 0}
+                  className={`px-6 py-3 rounded-xl text-lg font-bold transition-all ${
+                    rawWords.length === 0
+                      ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                      : 'bg-amber-500 hover:bg-amber-600 text-white shadow-lg hover:shadow-xl'
+                  }`}
+                >
+                  👁️ Revelar Votos ({rawWords.length})
+                </button>
+              ) : (
+                <button
+                  onClick={handleNewRound}
+                  className="px-6 py-3 rounded-xl text-lg font-bold bg-green-500 hover:bg-green-600 text-white shadow-lg hover:shadow-xl transition-all"
+                >
+                  🔄 Nueva Ronda
+                </button>
+              )}
+            </div>
+            {/* Resultados de poker con fondo semitransparente */}
+            <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-2xl p-6 sm:p-8">
+              <PlanningPokerResults
+                votes={rawWords}
+                participants={participants}
+                revealed={votesRevealed}
+              />
+            </div>
           </div>
         ) : (
-          <div className="w-full h-full">
-            <WordCloudVisualization 
-              words={words} 
-              presentationMode={true}
-            />
-          </div>
+          // Modo presentación para Word Cloud
+          words.length === 0 ? (
+            <div className="text-center max-w-md sm:max-w-2xl">
+              <svg className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 text-white opacity-50 mx-auto mb-4 sm:mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+              </svg>
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-3 sm:mb-4">
+                Esperando las primeras palabras...
+              </h2>
+              <p className="text-base sm:text-lg lg:text-xl text-blue-200">
+                {roomData.state === 'waiting' ? 'Inicia la sala para comenzar a recibir palabras' : 'Los participantes pueden enviar sus palabras ahora'}
+              </p>
+            </div>
+          ) : (
+            <div className="w-full h-full">
+              <WordCloudVisualization 
+                words={words} 
+                presentationMode={true}
+              />
+            </div>
+          )
         )}
       </div>
 
@@ -593,29 +715,65 @@ const Room = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid lg:grid-cols-3 gap-8">
-          {/* Word Cloud */}
+          {/* Word Cloud / Poker Results */}
           <div className="lg:col-span-2">
             <div className="card">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                {roomData?.title || 'Word Cloud en Tiempo Real'}
-              </h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  {isPokerRoom 
+                    ? `🃏 Planning Poker — Ronda ${currentRound}`
+                    : (roomData?.title || 'Word Cloud en Tiempo Real')
+                  }
+                </h2>
+                {/* Controles admin para poker */}
+                {isAdmin && isPokerRoom && roomData.state === 'active' && (
+                  <div className="flex gap-2">
+                    {!votesRevealed ? (
+                      <button
+                        onClick={handleRevealVotes}
+                        disabled={rawWords.length === 0}
+                        className={`btn btn-sm text-white ${rawWords.length === 0 ? 'bg-gray-400 cursor-not-allowed' : 'bg-amber-500 hover:bg-amber-600'}`}
+                      >
+                        👁️ Revelar ({rawWords.length})
+                      </button>
+                    ) : (
+                      <button
+                        onClick={handleNewRound}
+                        className="btn btn-sm bg-green-500 hover:bg-green-600 text-white"
+                      >
+                        🔄 Nueva Ronda
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
               
-              {words.length === 0 ? (
-                <div className="text-center py-16">
-                  <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
-                  </svg>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    Esperando las primeras palabras...
-                  </h3>
-                  <p className="text-gray-600">
-                    ¡Sé el primero en enviar una palabra!
-                  </p>
-                </div>
+              {isPokerRoom ? (
+                // Mostrar resultados de poker
+                <PlanningPokerResults
+                  votes={rawWords}
+                  participants={participants}
+                  revealed={votesRevealed}
+                />
               ) : (
-                <div className="flex flex-wrap items-center justify-center gap-4 py-8 min-h-[300px]">
-                  <WordCloudVisualization words={words} />
-                </div>
+                // Mostrar word cloud
+                words.length === 0 ? (
+                  <div className="text-center py-16">
+                    <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                    </svg>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      Esperando las primeras palabras...
+                    </h3>
+                    <p className="text-gray-600">
+                      ¡Sé el primero en enviar una palabra!
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap items-center justify-center gap-4 py-8 min-h-[300px]">
+                    <WordCloudVisualization words={words} />
+                  </div>
+                )
               )}
             </div>
           </div>
@@ -631,50 +789,68 @@ const Room = () => {
                   </svg>
                   <h3 className="text-lg font-semibold text-blue-900 mb-1">Panel de Administrador</h3>
                   <p className="text-blue-700 text-sm mb-4">
-                    Estás viendo esta sala como administrador. Los participantes pueden enviar palabras usando el código: <strong>{roomData.code}</strong>
+                    {isPokerRoom 
+                      ? <>Sala de Planning Poker. Los participantes votan usando el código: <strong>{roomData.code}</strong></>
+                      : <>Estás viendo esta sala como administrador. Los participantes pueden enviar palabras usando el código: <strong>{roomData.code}</strong></>
+                    }
                   </p>
                 </div>
               </div>
             )}
             
-            {/* Word Submission - Only for non-admin participants */}
-            {!isAdmin && hasJoined && !hasVoted && roomData.state === 'active' && (
-              <div className="card">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Envía tu palabra</h3>
-                <form onSubmit={handleSubmitWord} className="space-y-4">
-                  <div>
-                    <input
-                      type="text"
-                      value={word}
-                      onChange={(e) => setWord(e.target.value)}
-                      placeholder="Escribe una palabra..."
-                      className="input"
-                      maxLength={50}
-                      disabled={isLoading}
-                    />
-                  </div>
-                  <button
-                    type="submit"
-                    disabled={!word.trim() || isLoading}
-                    className={`btn btn-primary w-full ${
-                      !word.trim() || isLoading ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
-                  >
-                    {isLoading ? (
-                      <div className="flex items-center justify-center">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Enviando...
+            {/* Word Submission / Poker Cards — Only for non-admin participants */}
+            {!isAdmin && hasJoined && roomData.state === 'active' && (
+              isPokerRoom ? (
+                // Tarjetas de Planning Poker
+                <div className="card">
+                  <PlanningPokerCards
+                    scale={pokerScale}
+                    onVote={handlePokerVote}
+                    disabled={!!pokerVote}
+                    selectedValue={pokerVote}
+                  />
+                </div>
+              ) : (
+                // Input de palabras para Word Cloud (solo si no ha votado)
+                !hasVoted && (
+                  <div className="card">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Envía tu palabra</h3>
+                    <form onSubmit={handleSubmitWord} className="space-y-4">
+                      <div>
+                        <input
+                          type="text"
+                          value={word}
+                          onChange={(e) => setWord(e.target.value)}
+                          placeholder="Escribe una palabra..."
+                          className="input"
+                          maxLength={50}
+                          disabled={isLoading}
+                        />
                       </div>
-                    ) : (
-                      'Enviar Palabra'
-                    )}
-                  </button>
-                </form>
-              </div>
+                      <button
+                        type="submit"
+                        disabled={!word.trim() || isLoading}
+                        className={`btn btn-primary w-full ${
+                          !word.trim() || isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
+                      >
+                        {isLoading ? (
+                          <div className="flex items-center justify-center">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                            Enviando...
+                          </div>
+                        ) : (
+                          'Enviar Palabra'
+                        )}
+                      </button>
+                    </form>
+                  </div>
+                )
+              )
             )}
 
-            {/* Voted Status - Only for participants */}
-            {!isAdmin && hasJoined && hasVoted && (
+            {/* Voted Status — Only for word cloud participants (poker shows in cards) */}
+            {!isAdmin && hasJoined && hasVoted && !isPokerRoom && (
               <div className="card bg-green-50 border-green-200">
                 <div className="text-center">
                   <svg className="w-8 h-8 text-green-500 mx-auto mb-2" fill="currentColor" viewBox="0 0 20 20">

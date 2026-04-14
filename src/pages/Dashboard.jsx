@@ -6,6 +6,7 @@ import toast from 'react-hot-toast'
 import { useAuth } from '../contexts/AuthContext'
 import { useFirebase } from '../contexts/FirebaseContext'
 import { deleteRoom } from '../services/deleteRoom'
+import { ROOM_TYPES, ESTIMATION_SCALES } from '../utils/constants'
 import EmailVerificationBanner from '../components/auth/EmailVerificationBanner'
 import GuideModal from '../components/GuideModal'
 import ShareModal from '../components/ShareModal'
@@ -27,6 +28,8 @@ const Dashboard = () => {
   const [roomTitle, setRoomTitle] = useState('')
   const [roomDescription, setRoomDescription] = useState('')
   const [startAfterCreation, setStartAfterCreation] = useState(false)
+  const [roomType, setRoomType] = useState(ROOM_TYPES.WORDCLOUD)
+  const [estimationScale, setEstimationScale] = useState('FIBONACCI')
   
   // Estados para el modal de confirmación de eliminación
   const [showDeleteModal, setShowDeleteModal] = useState(false)
@@ -101,12 +104,14 @@ const Dashboard = () => {
     try {
       const roomData = {
         title: roomTitle.trim() || `Sala de ${currentUser.email}`,
-        description: roomDescription.trim() || 'Nueva sala de Word Cloud',
+        description: roomDescription.trim() || (roomType === ROOM_TYPES.PLANNING_POKER ? 'Sesión de Planning Poker' : 'Nueva sala de Word Cloud'),
         maxParticipants: 50,
         timeLimit: 30,
         adminEmail: currentUser.email,
         isActive: startAfterCreation,
-        state: startAfterCreation ? 'active' : 'waiting'
+        state: startAfterCreation ? 'active' : 'waiting',
+        roomType,
+        estimationScale: roomType === ROOM_TYPES.PLANNING_POKER ? estimationScale : null
       }
       const result = await api.createRoom(roomData)
       await loadUserRooms()
@@ -115,6 +120,8 @@ const Dashboard = () => {
       setRoomTitle('')
       setRoomDescription('')
       setStartAfterCreation(false)
+      setRoomType(ROOM_TYPES.WORDCLOUD)
+      setEstimationScale('FIBONACCI')
       setShowCreateModal(false)
       
       const roomCode = result?.data?.roomCode || result?.roomCode
@@ -331,6 +338,11 @@ const Dashboard = () => {
                       <div className="mt-2 flex flex-wrap items-center text-sm text-gray-500 gap-2">
                         <span>Código: {room.code}</span>
                         <span>Participantes: {participantCounts[room.id] || 0}</span>
+                        {room.roomType === 'planning-poker' && (
+                          <span className="px-2 py-1 rounded-full text-xs bg-indigo-100 text-indigo-800">
+                            🃏 Poker
+                          </span>
+                        )}
                         <span className={`px-2 py-1 rounded-full text-xs ${
                           room.state === 'active' ? 'bg-green-100 text-green-800' :
                           room.state === 'waiting' ? 'bg-yellow-100 text-yellow-800' :
@@ -437,6 +449,75 @@ const Dashboard = () => {
                 />
               </div>
 
+              {/* Selector de tipo de sala */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Tipo de sala
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setRoomType(ROOM_TYPES.WORDCLOUD)}
+                    className={`p-3 rounded-lg border-2 text-center transition-all ${
+                      roomType === ROOM_TYPES.WORDCLOUD
+                        ? 'border-primary-500 bg-primary-50 text-primary-700'
+                        : 'border-gray-200 hover:border-gray-300 text-gray-600'
+                    }`}
+                  >
+                    <span className="text-xl block mb-1">☁️</span>
+                    <span className="text-sm font-medium">Word Cloud</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRoomType(ROOM_TYPES.PLANNING_POKER)}
+                    className={`p-3 rounded-lg border-2 text-center transition-all ${
+                      roomType === ROOM_TYPES.PLANNING_POKER
+                        ? 'border-primary-500 bg-primary-50 text-primary-700'
+                        : 'border-gray-200 hover:border-gray-300 text-gray-600'
+                    }`}
+                  >
+                    <span className="text-xl block mb-1">🃏</span>
+                    <span className="text-sm font-medium">Planning Poker</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Selector de escala de estimación (solo para Planning Poker) */}
+              {roomType === ROOM_TYPES.PLANNING_POKER && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Escala de estimación
+                  </label>
+                  <div className="space-y-2">
+                    {Object.entries(ESTIMATION_SCALES).map(([key, scale]) => (
+                      <label
+                        key={key}
+                        className={`flex items-center p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                          estimationScale === key
+                            ? 'border-primary-500 bg-primary-50'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="estimationScale"
+                          value={key}
+                          checked={estimationScale === key}
+                          onChange={(e) => setEstimationScale(e.target.value)}
+                          className="w-4 h-4 text-primary-600 mr-3"
+                        />
+                        <div>
+                          <span className="text-sm font-medium text-gray-700">{scale.name}</span>
+                          <p className="text-xs text-gray-500 mt-0.5">
+                            {scale.values.join(' · ')}
+                          </p>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div>
                 <label className="flex items-center cursor-pointer">
                   <input
@@ -468,6 +549,8 @@ const Dashboard = () => {
                   setRoomTitle('')
                   setRoomDescription('')
                   setStartAfterCreation(false)
+                  setRoomType(ROOM_TYPES.WORDCLOUD)
+                  setEstimationScale('FIBONACCI')
                   setError('')
                 }}
                 className="btn btn-secondary flex-1"

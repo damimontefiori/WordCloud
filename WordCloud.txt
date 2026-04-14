@@ -1,0 +1,97 @@
+# WordCloud App - Lluvia de Ideas en Tiempo Real
+
+## 📖 ¿Qué es esta aplicación?
+**WordCloud App** es una plataforma web interactiva diseñada para facilitar sesiones de lluvia de ideas (brainstorming) y votaciones en tiempo real. Permite a un presentador crear una "sala" virtual y generar un código único. Los participantes, utilizando sus dispositivos móviles o computadoras, ingresan ese código para enviar palabras o conceptos. Estas respuestas se visualizan instantáneamente en una "nube de palabras", donde los términos más repetidos aparecen con mayor tamaño, creando una representación visual colectiva de la opinión del grupo.
+
+## 🎯 ¿Para qué sirve?
+Esta herramienta es ideal para entornos educativos, corporativos y eventos sociales. Sus principales usos incluyen:
+*   **Educación:** Profesores que desean evaluar conocimientos previos o recibir feedback instantáneo de sus alumnos.
+*   **Presentaciones:** Conferencistas que buscan interactuar con su audiencia y romper el hielo.
+*   **Reuniones de equipo:** Definición de objetivos, valores de empresa o retrospectivas ágiles.
+*   **Eventos:** Juegos participativos y dinámicas grupales.
+
+---
+
+## ✊ Democratización de las Word Clouds (vs. Mentimeter)
+Históricamente, herramientas populares como Mentimeter o Slido han dominado este mercado. Sin embargo, suelen operar bajo modelos "Freemium" altamente restrictivos (ej. límite de 2 diapositivas, límite de participantes, o pago mensual recurrente elevado).
+
+**WordCloud App democratiza esta tecnología basándose en tres pilares:**
+1.  **Acceso Gratuito y Sin Barreras:** No existen "Planes Premium". Todas las funcionalidades, como la creación ilimitada de salas y la visualización en pantalla completa, están disponibles para todos.
+2.  **Sin Registro para Participantes:** A diferencia de otras plataformas que recolectan datos innecesarios, aquí los participantes solo necesitan el código de sala. No requiere e-mail ni login, garantizando privacidad y rapidez.
+3.  **Tecnología de Bajo Costo:** Al utilizar una arquitectura Serverless optimizada (Firebase Spark Plan), los costos de mantenimiento son mínimos, lo que permite mantener la herramienta gratuita para la comunidad.
+
+---
+
+## 🛠️ Stack Tecnológico
+La aplicación utiliza tecnologías modernas de desarrollo web, priorizando el rendimiento, la experiencia de usuario y la escalabilidad.
+
+### Frontend
+*   **React 18:** Biblioteca principal para la construcción de interfaces de usuario interactivas, utilizando Hooks (`useState`, `useEffect`, `useContext`) para la gestión del estado.
+*   **Vite:** Herramienta de construcción (bundler) de próxima generación que ofrece un entorno de desarrollo extremadamente rápido.
+*   **Tailwind CSS:** Framework de CSS utilitario que permite un diseño "Mobile-First" rápido y responsivo, asegurando que la app  se vea bien tanto en proyectores como en celulares.
+*   **React Router:** Para el manejo de la navegación entre páginas (SPA - Single Page Application).
+*   **React Query:** Gestión eficiente del estado asíncrono y caché de datos.
+
+### Backend & Servicios (BaaS)
+*   **Firebase Authentication:** Gestiona el registro y login seguro de los presentadores (Google Auth, Email/Password).
+*   **Firebase Firestore:** Base de datos NoSQL en tiempo real. Es el corazón de la app, sincronizando las palabras enviadas por los usuarios con la pantalla del presentador en milisegundos.
+*   **Netlify:** Plataforma de hosting para el despliegue continuo (CD) y alojamiento global de la aplicación.
+
+---
+
+## 🏗️ Arquitectura
+El proyecto sigue una arquitectura **Client-Side Only (Serverless)**, optimizada para funcionar dentro del plan gratuito (Spark) de Firebase.
+
+1.  **Lógica en el Cliente:** No se utilizan *Cloud Functions* (backend tradicional). Toda la lógica de negocio (conteo de palabras, validaciones, generación de códigos) reside en el frontend de React.
+2.  **Comunicación Directa:** El cliente se conecta directamente a Firestore.
+    *   *Escritura:* Los participantes escriben documentos en una sub-colección de la sala.
+    *   *Lectura:* El dashboard del presentador se suscribe (`onSnapshot`) a los cambios en esa colección, recibiendo actualizaciones en tiempo real (WebSockets).
+3.  **Seguridad:** Se maneja a través de las *Firestore Security Rules*, asegurando que solo el creador de la sala pueda administrar# WordCloud App - Lluvia de Ideas en Tiempo Real
+
+## 📖 ¿Qué es esta aplicación?
+**WordCloud App** es una plataforma web interactiva diseñada para facilitar sesiones de lluvia de ideas (brainstorming) y votaciones en tiempo real. Permite a un presentador crear una "sala" virtual y generar un código único. Los participantes, utilizando sus dispositivos móviles o computadoras, ingresan ese código para enviar palabras o conceptos. Estas respuestas se visualizan instantáneamente en una "nube de palabras", donde los términos más repetidos aparecen con mayor tamaño, creando una representación visual colectiva de la opinión del grupo.
+
+## 🎯 ¿Para qué sirve?
+Esta herramienta es ideal para entornos educativos, corporativos y eventos sociales. Sus principales usos incluyen:
+*   **Educación:** Profesores que desean evaluar conocimientos previos o recibir feedback instantáneo de sus alumnos.
+*   **Presentaciones:** Conferencistas que buscan interactuar con su audiencia y romper el hielo.
+*   **Reuniones de equipo:** Definición de objetivos, valores de empresa o retrospectivas ágiles.
+*   **Eventos:** Juegos participativos y dinámicas grupales.
+
+---
+
+## ✊ Democratización de las Word Clouds (vs. Mentimeter)
+Históricamente, herramientas populares como Mentimeter o Slido han dominado este mercado. Sin embargo, suelen operar bajo modelos "Freemium" altamente restrictivos (ej. límite de 2 diapositivas, límite de participantes, o pago mensual recurrente elevado).
+
+**WordCloud App democratiza esta tecnología basándose en tres pilares:**
+1.  **Acceso Gratuito y Sin Barreras:** No existen "Planes Premium". Todas las funcionalidades, como la creación ilimitada de salas y la visualización en pantalla completa, están disponibles para todos.
+2.  **Sin Registro para Participantes:** A diferencia de otras plataformas que recolectan datos innecesarios, aquí los participantes solo necesitan el código de sala. No requiere e-mail ni login, garantizando privacidad y rapidez.
+3.  **Tecnología de Bajo Costo:** Al utilizar una arquitectura Serverless optimizada (Firebase Spark Plan), los costos de mantenimiento son mínimos, lo que permite mantener la herramienta gratuita para la comunidad.
+
+---
+
+## 🛠️ Stack Tecnológico
+La aplicación utiliza tecnologías modernas de desarrollo web, priorizando el rendimiento, la experiencia de usuario y la escalabilidad.
+
+### Frontend
+*   **React 18:** Biblioteca principal para la construcción de interfaces de usuario interactivas, utilizando Hooks (`useState`, `useEffect`, `useContext`) para la gestión del estado.
+*   **Vite:** Herramienta de construcción (bundler) de próxima generación que ofrece un entorno de desarrollo extremadamente rápido.
+*   **Tailwind CSS:** Framework de CSS utilitario que permite un diseño "Mobile-First" rápido y responsivo, asegurando que la app  se vea bien tanto en proyectores como en celulares.
+*   **React Router:** Para el manejo de la navegación entre páginas (SPA - Single Page Application).
+*   **React Query:** Gestión eficiente del estado asíncrono y caché de datos.
+
+### Backend & Servicios (BaaS)
+*   **Firebase Authentication:** Gestiona el registro y login seguro de los presentadores (Google Auth, Email/Password).
+*   **Firebase Firestore:** Base de datos NoSQL en tiempo real. Es el corazón de la app, sincronizando las palabras enviadas por los usuarios con la pantalla del presentador en milisegundos.
+*   **Netlify:** Plataforma de hosting para el despliegue continuo (CD) y alojamiento global de la aplicación.
+
+---
+
+## 🏗️ Arquitectura
+El proyecto sigue una arquitectura **Client-Side Only (Serverless)**, optimizada para funcionar dentro del plan gratuito (Spark) de Firebase.
+
+1.  **Lógica en el Cliente:** No se utilizan *Cloud Functions* (backend tradicional). Toda la lógica de negocio (conteo de palabras, validaciones, generación de códigos) reside en el frontend de React.
+2.  **Comunicación Directa:** El cliente se conecta directamente a Firestore.
+    *   *Escritura:* Los participantes escriben documentos en una sub-colección de la sala.
+    *   *Lectura:* El dashboard del presentador se suscribe (`onSnapshot`) a los cambios en esa colección, recibiendo actualizaciones en tiempo real (WebSockets).
+3.  **Seguridad:** Se maneja a través de las *Firestore Security Rules*, asegurando que solo el creador de la sala pueda administrar

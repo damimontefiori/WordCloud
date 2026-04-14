@@ -4,7 +4,9 @@ import { normalizeWord } from '../utils/wordNormalizer.js';
 import {
   addDoc,
   collection,
+  deleteDoc as firestoreDeleteDoc,
   doc,
+  getDoc,
   getDocs,
   query,
   updateDoc,
@@ -56,6 +58,11 @@ export const apiService = {
       participantCount: 0,
       createdBy: auth.currentUser.uid,
       createdAt: serverTimestamp(),
+      // Planning Poker fields
+      roomType: data?.roomType || 'wordcloud',
+      estimationScale: data?.estimationScale || null,
+      revealVotes: false,
+      currentRound: 1,
     };
 
     const ref = await addDoc(collection(db, 'rooms'), payload);
@@ -214,6 +221,86 @@ export const apiService = {
     console.log('🔄 Using direct Firestore for submitWord (Firebase Spark plan)');
     const result = await this.submitWordDirect(data);
     return result;
+  },
+
+  // Enviar voto de Planning Poker — guarda como word con text único por participante
+  async submitPokerVote(data) {
+    const { vote, participantId, roomCode } = data;
+
+    const roomQuery = query(
+      collection(db, 'rooms'),
+      where('code', '==', roomCode.toUpperCase())
+    );
+    const roomSnapshot = await getDocs(roomQuery);
+    if (roomSnapshot.empty) throw new Error('Sala no encontrada');
+
+    const roomDoc = roomSnapshot.docs[0];
+    const roomData = roomDoc.data();
+    if (roomData.state !== 'active') throw new Error('La sala no está activa');
+
+    // Texto único con participantId para evitar deduplicación entre participantes
+    const uniqueText = `${vote}_${participantId}`;
+
+    // Verificar si ya votó en esta ronda (mismo participantId + roomId + ronda actual)
+    const existingQuery = query(
+      collection(db, 'words'),
+      where('roomId', '==', roomDoc.id),
+      where('participantId', '==', participantId)
+    );
+    const existingSnap = await getDocs(existingQuery);
+
+    if (!existingSnap.empty) {
+      // Actualizar voto existente
+      const existingDoc = existingSnap.docs[0];
+      await updateDoc(doc(db, 'words', existingDoc.id), {
+        text: uniqueText,
+        originalText: vote,
+        lastUpdated: serverTimestamp()
+      });
+      return { data: { wordId: existingDoc.id, action: 'updated' } };
+    }
+
+    // Crear nuevo voto
+    const wordData = {
+      text: uniqueText,
+      originalText: vote,
+      participantId: participantId || 'anonymous',
+      roomId: roomDoc.id,
+      roomCode: roomCode.toUpperCase(),
+      createdAt: serverTimestamp(),
+      count: 1
+    };
+    const ref = await addDoc(collection(db, 'words'), wordData);
+    return { data: { wordId: ref.id, action: 'created' } };
+  },
+
+  // Revelar votos de Planning Poker
+  async revealPokerVotes(roomId) {
+    if (!auth.currentUser) throw new Error('No autenticado');
+    await updateDoc(doc(db, 'rooms', roomId), { revealVotes: true });
+    return { ok: true };
+  },
+
+  // Nueva ronda de Planning Poker — borra votos anteriores e incrementa ronda
+  async newPokerRound(roomId) {
+    if (!auth.currentUser) throw new Error('No autenticado');
+
+    // Borrar todas las words de esta room
+    const wordsQuery = query(collection(db, 'words'), where('roomId', '==', roomId));
+    const wordsSnap = await getDocs(wordsQuery);
+    const deletePromises = wordsSnap.docs.map(d => firestoreDeleteDoc(d.ref));
+    await Promise.all(deletePromises);
+
+    // Obtener room actual para incrementar ronda
+    const roomRef = doc(db, 'rooms', roomId);
+    const roomSnap = await getDoc(roomRef);
+    const currentRound = roomSnap.data()?.currentRound || 1;
+
+    await updateDoc(roomRef, {
+      revealVotes: false,
+      currentRound: currentRound + 1
+    });
+    return { ok: true, newRound: currentRound + 1 };
   },
 
   // Manual cleanup (admin only)
